@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>マネービジョン｜未来の資産を、見える化する。</title>
+    <meta name="description" content="年齢と収支を入れるだけで、資産寿命と目標到達がグラフでわかる無料シミュレーター。登録不要・データは端末内にのみ保存。" />
+    <meta property="og:title" content="マネービジョン" />
+    <meta property="og:description" content="未来の資産を、見える化する。資産寿命と目標到達が30秒でグラフに。" />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:url" content="https://kyuusaku16-a11y.github.io/money-vision/" />
+    <meta property="og:image" content="https://kyuusaku16-a11y.github.io/money-vision/ogp.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <!-- Chart.js: Subresource Integrity (sha384) で CDN 改ざんを検証 -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
+      integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
+    <header>
+      <h1><span class="char" aria-hidden="true">🌱</span>マネービジョン</h1>
+      <p class="tagline">未来の資産を、見える化する。</p>
+    </header>
+
+    <main>
+      <section class="panel form">
+        <h2>あなたの数字</h2>
+
+        <label>現在の年齢（歳）<input type="number" id="currentAge" min="18" max="80" /></label>
+
+        <label>現在の資産（万円）<input type="number" id="totalAsset" min="0" step="10" /></label>
+        <label class="sub">うち投資に回している額（万円）<input type="number" id="investedAsset" min="0" step="10" /></label>
+
+        <label>毎月の投資額（万円）<input type="number" id="monthlyInvest" min="0" step="0.5" /></label>
+        <input type="range" id="monthlyInvestSlider" min="0" max="300000" step="5000" aria-label="毎月の投資額" />
+        <p class="field-note">※現金から投資へ移す金額です（収入とは別に増えるお金ではありません）</p>
+
+        <label>手取り年収・ボーナス込み（万円）<input type="number" id="annualIncome" min="0" step="10" /></label>
+        <input type="range" id="annualIncomeSlider" min="2000000" max="15000000" step="100000" aria-label="手取り年収" />
+        <p id="incomeNotice" class="validation" hidden aria-live="polite"></p>
+
+        <label>年間支出・現役（万円）<input type="number" id="annualExpense" min="0" step="10" /></label>
+        <input type="range" id="annualExpenseSlider" min="1000000" max="8000000" step="100000" aria-label="年間支出" />
+
+        <label>想定利回り（％）<input type="number" id="expectedReturn" min="0" max="20" step="0.5" /></label>
+        <p class="field-note">目安：弱気なら2%・ふつうは5%・強気なら8%</p>
+        <p class="field-note">※インフレ分を引いたあとの利回りです</p>
+
+        <label>目標金額（万円）<input type="number" id="targetAmount" min="0" step="100" /></label>
+
+        <p id="validationMsg" class="validation" hidden aria-live="polite"></p>
+
+        <details id="advanced">
+          <summary>詳しく設定<span id="advancedSummary" class="summary-note"></span></summary>
+          <h3>老後のこと</h3>
+          <label>退職年齢・積立終了（歳）<input type="number" id="retireAge" min="50" max="75" /></label>
+          <input type="range" id="retireAgeSlider" min="50" max="75" step="1" aria-label="退職年齢" />
+          <label>年金額（万円/年）<input type="number" id="pensionAnnual" min="0" step="10" /></label>
+          <label>年金開始年齢（歳）<input type="number" id="pensionStartAge" min="60" max="75" /></label>
+          <label>退職金（万円）<input type="number" id="retirementBonus" min="0" step="100" /></label>
+          <label>老後の支出（現役の％）<input type="number" id="retiredExpenseRatio" min="30" max="100" step="5" /></label>
+          <h3>シミュレーション設定</h3>
+          <label>終了年齢（歳）
+            <select id="endAge">
+              <option>90</option><option>95</option><option>100</option><option>105</option><option>110</option>
+            </select>
+          </label>
+        </details>
+      </section>
+
+      <section class="results">
+        <div class="kpis">
+          <div class="kpi"><span class="kpi-label">現在の資産</span><span class="kpi-value" id="kpi-current">-</span></div>
+          <div class="kpi"><span class="kpi-label" id="kpi-final-label">100歳時点の資産</span><span class="kpi-value" id="kpi-final">-</span></div>
+          <div class="kpi"><span class="kpi-label">目標到達まで</span><span class="kpi-value" id="kpi-target">-</span></div>
+          <div class="kpi hero"><span class="kpi-label">資産寿命</span><span class="kpi-value" id="kpi-lifetime">-</span></div>
+        </div>
+
+        <div class="panel chart-wrap">
+          <canvas id="chart"></canvas>
+          <button id="defaultsNote" class="defaults-note" type="button" hidden>年金は平均値で計算中（タップで変更）</button>
+        </div>
+
+        <div id="reaction" class="reaction" hidden aria-live="polite"><span class="char" aria-hidden="true">🌱</span><span id="reactionText"></span></div>
+
+        <div class="panel comments" id="comments"></div>
+      </section>
+    </main>
+
+    <footer>
+      <p>マネービジョンは簡易シミュレーションです。投資助言ではなく、将来の成果を保証するものでもありません。</p>
+      <p>入力データはこの端末のブラウザ内にのみ保存されます（外部送信はありません）。</p>
+    </footer>
+
+    <script type="module" src="src/main.js"></script>
+  </body>
+</html>
