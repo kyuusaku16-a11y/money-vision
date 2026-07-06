@@ -23,8 +23,8 @@
 
 ```bash
 cd app
-python3 -m http.server 8000   # http://localhost:8000/ で起動
-npm test                       # ユニットテスト（node --test）
+python3 serve.py   # http://localhost:8000/ で起動（キャッシュ無効の開発サーバー）
+npm test           # ユニットテスト（node --test）
 ```
 
 Vanilla JS（ES Modules）+ Chart.js。ビルド不要。

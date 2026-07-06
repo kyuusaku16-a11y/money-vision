@@ -12,7 +12,7 @@
     <meta property="og:url" content="https://kyuusaku16-a11y.github.io/money-vision/" />
     <meta property="og:image" content="https://kyuusaku16-a11y.github.io/money-vision/ogp.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>" />
+    <link rel="icon" href="assets/sprout.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet" />
@@ -26,8 +26,21 @@
   </head>
   <body>
     <header>
-      <h1><span class="char" aria-hidden="true">🌱</span>マネービジョン</h1>
-      <p class="tagline">未来の資産を、見える化する。</p>
+      <img class="header-flower header-flower-left" src="assets/flower.png" alt="" aria-hidden="true" />
+      <div class="brand">
+        <img class="char-img" src="assets/pair-sit.png" alt="" aria-hidden="true" />
+        <div class="brand-text">
+          <h1>マネービジョン</h1>
+          <p class="tagline">未来の資産を、見える化する。</p>
+        </div>
+      </div>
+      <img class="header-flower header-flower-mid" src="assets/flowers.png" alt="" aria-hidden="true" />
+      <div class="greeting" aria-hidden="true">
+        <span class="greeting-bubble">一緒に未来の<br />安心を育てていこうね♪</span>
+        <img class="greeting-bird" src="assets/bird-blue.png" alt="" />
+        <img class="greeting-bird pink" src="assets/bird-pink.png" alt="" />
+      </div>
+      <img class="header-flower header-flower-right" src="assets/flower.png" alt="" aria-hidden="true" />
     </header>
 
     <main>
@@ -90,10 +103,10 @@
 
       <section class="results">
         <div class="kpis">
-          <div class="kpi"><span class="kpi-label">現在の資産</span><span class="kpi-value" id="kpi-current">-</span></div>
-          <div class="kpi"><span class="kpi-label" id="kpi-final-label">100歳時点の資産</span><span class="kpi-value" id="kpi-final">-</span></div>
-          <div class="kpi"><span class="kpi-label">目標到達まで</span><span class="kpi-value" id="kpi-target">-</span></div>
-          <div class="kpi hero"><span class="kpi-label">資産寿命</span><span class="kpi-value" id="kpi-lifetime">-</span></div>
+          <div class="kpi"><span class="kpi-icon icon-green" aria-hidden="true"><img src="assets/coins.png" alt="" /></span><div class="kpi-text"><span class="kpi-label">現在の資産</span><span class="kpi-value" id="kpi-current">-</span></div></div>
+          <div class="kpi"><span class="kpi-icon icon-blue" aria-hidden="true"><img src="assets/sprout.png" alt="" /></span><div class="kpi-text"><span class="kpi-label" id="kpi-final-label">100歳時点の資産</span><span class="kpi-value" id="kpi-final">-</span></div></div>
+          <div class="kpi"><span class="kpi-icon icon-orange" aria-hidden="true"><img src="assets/rabbit-banzai.png" alt="" /></span><div class="kpi-text"><span class="kpi-label">目標到達まで</span><span class="kpi-value" id="kpi-target">-</span></div></div>
+          <div class="kpi hero"><span class="kpi-icon icon-yellow" aria-hidden="true"><img src="assets/rabbit-thumbs.png" alt="" /></span><div class="kpi-text"><span class="kpi-label">資産寿命</span><span class="kpi-value" id="kpi-lifetime">-</span></div></div>
         </div>
 
         <div class="panel chart-wrap">
@@ -101,16 +114,28 @@
           <button id="defaultsNote" class="defaults-note" type="button" hidden>年金は平均値で計算中（タップで変更）</button>
         </div>
 
-        <div class="panel schedule" id="schedule" hidden>
-          <h2>これからの大きな支出</h2>
-          <div id="scheduleList"></div>
+        <div class="below-chart">
+          <div class="panel schedule" id="schedule" hidden>
+            <h2>これからの大きな支出</h2>
+            <div id="scheduleList"></div>
+          </div>
+
+          <div class="panel comments" id="comments"></div>
         </div>
 
-        <div id="reaction" class="reaction" hidden aria-live="polite"><span class="char" aria-hidden="true">🌱</span><span id="reactionText"></span></div>
+        <div id="reaction" class="reaction" hidden aria-live="polite"><img class="reaction-img" id="reactionImg" src="assets/bird-pink.png" alt="" aria-hidden="true" /><span id="reactionText"></span></div>
 
-        <div class="panel comments" id="comments"></div>
+        <div class="summary-comment" id="summaryComment"></div>
+
+        <div class="diagnosis-area" id="diagnosis"></div>
       </section>
     </main>
+
+    <div class="page-chars" aria-hidden="true">
+      <img class="pc-flower" src="assets/flower.png" alt="" />
+      <img src="assets/pair-sit.png" alt="" />
+      <img class="pc-flower" src="assets/flowers.png" alt="" />
+    </div>
 
     <footer>
       <p>マネービジョンは簡易シミュレーションです。投資助言ではなく、将来の成果を保証するものでもありません。</p>

@@ -6,6 +6,7 @@ import { fmtMoney, manToYen, yenToMan } from './format.js';
 import { deriveValidation } from './validation.js';
 import { buildReaction } from './reactions.js';
 import { buildSchedule } from './schedule.js';
+import { buildAdvice, buildNarrativeReport } from './advice.js';
 
 // フォーム定義。id は state のキー名と一致。unit は UI⇄state の変換則
 // （man=万円⇄円 / pct100=%⇄比率 / raw=そのまま）。
@@ -37,6 +38,9 @@ let reactionTimer = null;
 const $ = (id) => document.getElementById(id);
 const fieldOf = (id) => FIELDS.find((f) => f.id === id);
 const sectionOf = (s, f) => (f.section === 'inputs' ? s.inputs : s.advanced);
+
+// 予定表「詳しく見る」の開閉状態（再描画をまたいで保持）
+let timelineOpen = false;
 
 function toState(field, uiValue) {
   const v = Number(uiValue);
@@ -98,15 +102,133 @@ function renderKpis(kpis, params) {
   life.classList.toggle('warn', !kpis.survivesToEnd);
 }
 
-function renderComments(comments) {
+function makeCommentCard(c) {
+  const card = document.createElement('div');
+  card.className = `comment ${c.type}`;
+  if (c.leadIcon || c.leadImg) {
+    const lead = document.createElement('span');
+    lead.className = 'comment-lead';
+    lead.setAttribute('aria-hidden', 'true');
+    if (c.leadImg) {
+      const img = document.createElement('img');
+      img.src = c.leadImg;
+      img.alt = '';
+      img.loading = 'lazy';
+      lead.appendChild(img);
+    } else {
+      lead.textContent = c.leadIcon;
+    }
+    card.appendChild(lead);
+  }
+  const content = document.createElement('div');
+  content.className = 'comment-content';
+  if (c.title) {
+    const t = document.createElement('strong');
+    t.className = 'comment-title';
+    t.textContent = c.title;
+    content.appendChild(t);
+  }
+  if (c.lines?.length) {
+    const lines = document.createElement('div');
+    lines.className = 'comment-lines';
+    for (const line of c.lines) {
+      const p = document.createElement('p');
+      p.textContent = line;
+      lines.appendChild(p);
+    }
+    content.appendChild(lines);
+  } else {
+    const body = document.createElement('span');
+    body.textContent = c.text;
+    content.appendChild(body);
+  }
+  if (c.actions?.length) {
+    const row = document.createElement('div');
+    row.className = 'comment-actions';
+    for (const a of c.actions) {
+      const chip = document.createElement('button');
+      chip.type = 'button';
+      chip.className = 'chip';
+      chip.textContent = a.label;
+      chip.addEventListener('click', () => {
+        const el = $(a.targetId);
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.focus({ preventScroll: true });
+      });
+      row.appendChild(chip);
+    }
+    content.appendChild(row);
+  }
+  if (c.noDecor) {
+    card.append(content);
+    return card;
+  }
+  const visual = document.createElement('span');
+  visual.className = 'comment-visual';
+  visual.setAttribute('aria-hidden', 'true');
+  if (c.decorImg) {
+    const img = document.createElement('img');
+    img.src = c.decorImg;
+    img.alt = '';
+    img.loading = 'lazy';
+    visual.appendChild(img);
+  } else {
+    visual.textContent = c.decorIcon ?? iconForComment(c);
+  }
+  card.append(content, visual);
+  return card;
+}
+
+function renderComments(cards, summary) {
   const box = $('comments');
   box.innerHTML = '';
-  for (const c of comments) {
-    const p = document.createElement('p');
-    p.className = `comment ${c.type}`;
-    p.textContent = c.text;
-    box.appendChild(p);
-  }
+  for (const c of cards) box.appendChild(makeCommentCard(c));
+
+  const summaryBox = $('summaryComment');
+  summaryBox.innerHTML = '';
+  if (summary) summaryBox.appendChild(makeCommentCard(summary));
+}
+
+function buildGuidanceCards(params, comments, advice) {
+  const cards = [
+    {
+      type: 'note money-note',
+      leadImg: 'assets/coins.png',
+      decorImg: 'assets/bear-book.png',
+      title: '毎月の投資は「お金の移動」です',
+      text: '毎月の投資額は、現在から目標に近づくこと。支出には含めませんので、ご安心ください。',
+    },
+    {
+      type: 'note education-note',
+      leadImg: 'assets/grad-cap.png',
+      decorImg: 'assets/rabbit-note.png',
+      title: '教育費は「差分」だけを反映しています',
+      text: (params.children ?? []).length
+        ? '「お子さまの教育費」は、標準支出との差分だけを追加する仕組みで、二重計上を防いでいます。'
+        : 'お子さまを追加すると、標準支出との差分だけを将来のグラフに反映します。',
+    },
+  ];
+
+  const result = comments.find((c) => c.type !== 'cheer') ?? advice[0];
+  const cheer = comments.find((c) => c.type === 'cheer');
+  const summaryText = result?.text ?? cheer?.text;
+  const summary = summaryText
+    ? { type: 'summary', leadImg: 'assets/bulb.png', decorImg: 'assets/pair-sit.png', title: result?.title, text: summaryText, actions: result?.actions }
+    : null;
+
+  return { cards, summary };
+}
+
+function iconForComment(c) {
+  if (c.icon) return c.icon;
+  if (c.type === 'diagnosis') return '🌱';
+  if (c.type === 'tip') return '💡';
+  if (c.type === 'good') return '🌿';
+  if (c.type === 'warning') return '⚠️';
+  if (c.type === 'cheer') return '🌸';
+  if (c.title?.includes('目標')) return '🎯';
+  if (c.title?.includes('資産') || c.title?.includes('残高')) return '🪙';
+  return '📌';
 }
 
 function renderValidation(v) {
@@ -131,7 +253,56 @@ function renderSchedule(rows) {
   const panel = $('schedule');
   const list = $('scheduleList');
   list.innerHTML = '';
-  panel.hidden = rows.length === 0;
+  panel.hidden = false;
+  const cards = [
+    { cls: 'edu', iconImg: 'assets/grad-cap.png', title: '教育費', sub: 'お子さま1人あたり', amount: '約 1,000〜1,500万円', target: 'addChild' },
+    { cls: 'home', iconImg: 'assets/house.png', title: '住まいの費用', sub: '購入・建て替えなど', amount: '約 2,000〜4,000万円', target: 'addEvent' },
+    { cls: 'other', iconImg: 'assets/bag.png', title: 'その他の大型支出', sub: '車の買替え・介護費用など', amount: '数百〜数千万円', target: 'addEvent' },
+  ];
+  const grid = document.createElement('div');
+  grid.className = 'expense-cards';
+  for (const c of cards) {
+    const card = document.createElement('div');
+    card.className = `expense-card ${c.cls}`;
+    const title = document.createElement('strong');
+    const iconImg = document.createElement('img');
+    iconImg.src = c.iconImg;
+    iconImg.alt = '';
+    iconImg.loading = 'lazy';
+    title.append(iconImg, document.createTextNode(c.title));
+    const sub = document.createElement('span');
+    sub.className = 'expense-sub';
+    sub.textContent = c.sub;
+    const amount = document.createElement('span');
+    amount.className = 'expense-amount';
+    amount.textContent = c.amount;
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = '設定で詳細を確認';
+    button.addEventListener('click', () => {
+      $('advanced').open = true;
+      $(c.target).scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    card.append(title, sub, amount, button);
+    grid.appendChild(card);
+  }
+  const note = document.createElement('p');
+  note.className = 'expense-note';
+  note.textContent = '※金額は目安です。詳細は「詳しく設定」からご確認ください。';
+  list.append(grid, note);
+  if (rows.length === 0) return;
+  // 「詳しく見る」開閉式の予定表（再描画をまたいで開閉状態を保つ）
+  const details = document.createElement('details');
+  details.className = 'timeline-details';
+  details.open = timelineOpen;
+  details.addEventListener('toggle', () => {
+    timelineOpen = details.open;
+  });
+  const toggleLabel = document.createElement('summary');
+  toggleLabel.textContent = '📅 詳しく見る（何年に・いくら）';
+  details.appendChild(toggleLabel);
+  const timeline = document.createElement('div');
+  timeline.className = 'schedule-timeline';
   for (const r of rows) {
     const row = document.createElement('div');
     row.className = 'sched-row';
@@ -146,8 +317,19 @@ function renderSchedule(rows) {
       items.appendChild(item);
     }
     row.append(when, items);
-    list.appendChild(row);
+    timeline.appendChild(row);
   }
+  details.appendChild(timeline);
+  list.appendChild(details);
+}
+
+// 一番下の「今回の診断」カード＋💡ちょこっとアドバイス
+function renderDiagnosis(report, tips) {
+  const box = $('diagnosis');
+  box.innerHTML = '';
+  // 診断カードの挿絵は「芽に水をやるくま」＝資産を育てる世界観
+  box.appendChild(makeCommentCard({ ...report, decorImg: 'assets/bear-watering.png' }));
+  for (const t of tips) box.appendChild(makeCommentCard({ ...t, noDecor: true }));
 }
 
 // --- 子どもの教育費 ---
@@ -297,6 +479,8 @@ function renderReaction(reaction) {
     box.hidden = true;
     return;
   }
+  // 改善は喜びうさぎ、ゆっくりペースはくまが寄り添う
+  $('reactionImg').src = reaction.type === 'improved' ? 'assets/rabbit-joy.png' : 'assets/bear.png';
   $('reactionText').textContent = reaction.text;
   box.hidden = false;
   reactionTimer = setTimeout(() => {
@@ -313,7 +497,11 @@ function update({ withReaction = false } = {}) {
 
   const kpis = deriveKpis(mainSeries, params);
   renderKpis(kpis, params);
-  renderComments(buildComments(kpis, params));
+  const advice = buildAdvice(params, mainSeries, kpis);
+  const comments = buildComments(kpis, params);
+  const guidance = buildGuidanceCards(params, comments, advice);
+  renderComments(guidance.cards, guidance.summary);
+  renderDiagnosis(buildNarrativeReport(params, mainSeries, kpis, advice), advice.filter((a) => a.type === 'tip'));
   renderValidation(deriveValidation(params));
   renderAdvancedSummary();
   renderSchedule(buildSchedule(params));

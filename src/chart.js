@@ -6,6 +6,10 @@
 
 import { educationCostAt } from './calc.js';
 
+// 目標達成バッジの喜ぶ2人（読み込み完了後の再描画から表示される）
+const JOY_IMG = new Image();
+JOY_IMG.src = 'assets/pair-joy.png';
+
 /**
  * Format a yen value as 万 / 億 label (no trailing "円").
  * @param {number} yen
@@ -45,14 +49,14 @@ export function renderChart(canvas, mainSeries, params, existingChart) {
   const pointRadius = mainSeries.map((p, i) =>
     i === retirementIdx ? 7 : i === goalIdx ? 6 : eventAges.has(p.age) ? 5 : 0);
   const pointBg = mainSeries.map((p, i) =>
-    i === retirementIdx ? '#f59e0b' : i === goalIdx ? '#ffd97d' : eventAges.has(p.age) ? '#7bc67e' : 'transparent');
+    i === retirementIdx ? '#f59e0b' : i === goalIdx ? '#ffd97d' : eventAges.has(p.age) ? '#a5cbe8' : 'transparent');
   const pointBorder = mainSeries.map((p, i) =>
     i === retirementIdx || i === goalIdx || eventAges.has(p.age) ? '#fff' : 'transparent');
 
   // --- target horizontal line (constant across all labels) ---
   const targetData = mainSeries.map(() => params.targetAmount);
 
-  // 目標に初めて届く年の上に「🎉 目標達成！」を描くインラインプラグイン
+  // 目標に初めて届く年の上に、喜ぶ2人と「🎉 目標達成！」を描くインラインプラグイン
   const goalBadge = {
     id: 'goalBadge',
     afterDatasetsDraw(chart) {
@@ -63,9 +67,12 @@ export function renderChart(canvas, mainSeries, params, existingChart) {
       ctx.save();
       ctx.font = 'bold 13px "Zen Maru Gothic", "Hiragino Sans", sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillStyle = '#4d9a5f';
-      const x = Math.min(Math.max(pt.x, chartArea.left + 52), chartArea.right - 52);
-      const y = Math.max(pt.y - 16, chartArea.top + 14);
+      ctx.fillStyle = '#c96079';
+      const x = Math.min(Math.max(pt.x, chartArea.left + 60), chartArea.right - 60);
+      const y = Math.max(pt.y - 16, chartArea.top + 58);
+      if (JOY_IMG.complete && JOY_IMG.naturalWidth > 0) {
+        ctx.drawImage(JOY_IMG, x - 39, y - 60, 78, 44);
+      }
       ctx.fillText('🎉 目標達成！', x, y);
       ctx.restore();
     },
@@ -78,7 +85,7 @@ export function renderChart(canvas, mainSeries, params, existingChart) {
       datasets: [
         // 1. Main line — thick, segment-colored green (gain) / red (loss)
         {
-          label:                `あなたのプラン（利回り${params.expectedReturn}%）`,
+          label:                `現在のプラン（利回り${params.expectedReturn}%）`,
           data:                 mainData,
           borderWidth:          3,
           pointRadius,
@@ -90,7 +97,7 @@ export function renderChart(canvas, mainSeries, params, existingChart) {
           tension:              0.3,
           segment: {
             borderColor: (ctx) =>
-              ctx.p1.parsed.y >= ctx.p0.parsed.y ? '#10b981' : '#ef4444',
+              ctx.p1.parsed.y >= ctx.p0.parsed.y ? '#ec8fa3' : '#c9a086',
           },
         },
         // 2. Target dashed line
