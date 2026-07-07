@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   loadState,
   saveState,
+  normalizeState,
   DEFAULT_STATE,
   DEFAULT_INPUTS,
   DEFAULT_ADVANCED,
@@ -72,4 +73,26 @@ test('loadState: children を配列に正規化・保存分を復元する', () 
 test('DEFAULT_ADVANCED: 住宅ローンの既定値（未入力=0円・65歳）を持つ', () => {
   assert.equal(DEFAULT_ADVANCED.loanMonthly, 0);
   assert.equal(DEFAULT_ADVANCED.loanEndAge, 65);
+});
+
+test('normalizeState: 読み込みファイルの欠けをデフォルトで補完する', () => {
+  const st = normalizeState({ inputs: { currentAge: 42 } });
+  assert.equal(st.inputs.currentAge, 42);
+  assert.equal(st.inputs.annualIncome, DEFAULT_INPUTS.annualIncome);
+  assert.equal(st.advanced.retireAge, DEFAULT_ADVANCED.retireAge);
+  assert.deepEqual(st.events, []);
+  assert.deepEqual(st.children, []);
+});
+
+test('normalizeState: オブジェクト以外はまるごとデフォルト', () => {
+  assert.deepEqual(normalizeState(null), DEFAULT_STATE);
+  assert.deepEqual(normalizeState('text'), DEFAULT_STATE);
+  assert.deepEqual(normalizeState(42), DEFAULT_STATE);
+});
+
+test('normalizeState: 配列フィールドの型崩れは空配列に直す', () => {
+  const st = normalizeState({ events: 'x', children: { a: 1 }, scenarios: 9 });
+  assert.deepEqual(st.events, []);
+  assert.deepEqual(st.children, []);
+  assert.deepEqual(st.scenarios, []);
 });

@@ -44,6 +44,16 @@
     </header>
 
     <main>
+      <!-- 初回訪問だけ表示する診断への入口（シェア経由の来訪者の受け皿） -->
+      <div class="diagnosis-hero" id="diagnosisHero" hidden>
+        <img class="dh-img" src="assets/rabbit-thumbs.png" alt="" aria-hidden="true" />
+        <div class="dh-text">
+          <strong>30秒でわかる「お金の性格診断」</strong>
+          <span>あなたは16タイプのどれ？ 数字はあとから自由に変えられます</span>
+        </div>
+        <button id="heroDiagnoseBtn" type="button">🌰 診断してみる</button>
+      </div>
+
       <section class="panel form">
         <h2>あなたの数字</h2>
 
@@ -104,6 +114,14 @@
           <p class="field-note">プリセットの金額は目安です。自由に変更できます</p>
           <div id="eventList"></div>
           <button id="addEvent" class="add-event" type="button">＋ イベントを追加</button>
+          <h3>データの引っ越し・バックアップ</h3>
+          <p class="field-note">機種変更やブラウザの引っ越しに。ファイルは端末内で作られ、どこにも送信されません</p>
+          <div class="backup-row">
+            <button id="exportBtn" class="add-event" type="button">📤 設定を書き出す</button>
+            <button id="importBtn" class="add-event" type="button">📥 設定を読み込む</button>
+          </div>
+          <input type="file" id="importFile" accept=".json,application/json" hidden />
+          <p id="backupMsg" class="field-note" hidden aria-live="polite"></p>
         </details>
       </section>
 
@@ -121,6 +139,7 @@
 
         <dialog id="shareDialog" class="share-dialog">
           <img id="shareCardImg" alt="お金の性格診断の結果カード" />
+          <p class="share-dialog-note">いま入力されている数字をもとに診断しています。入力を変えると結果も変わります</p>
           <div class="share-dialog-actions">
             <button id="shareDoBtn" type="button">📤 シェアする</button>
             <button id="shareSaveBtn" type="button">💾 画像を保存</button>

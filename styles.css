@@ -253,6 +253,7 @@ footer p { margin: 2px 0; font-size: 11px; color: var(--color-muted); line-heigh
 .event-del:hover { color: var(--color-warn); }
 .add-event { margin-top: 6px; border: 1px dashed var(--color-primary); background: none; color: var(--color-primary-deep); border-radius: 10px; padding: 8px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
 .add-event:hover { background: var(--color-good-bg); }
+.backup-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* イベントプリセット */
 .event-presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 2px; }
@@ -697,6 +698,42 @@ header .tagline { font-size: 13px; }
   .child-row select.course { max-width: none; flex-basis: 100%; }
 }
 
+/* 初回訪問の診断バナー（display:flex が hidden 属性に勝たないよう明示ガード） */
+.diagnosis-hero {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: linear-gradient(135deg, #fdeef1, #fbe6e4);
+  border: 2px solid var(--color-primary);
+  border-radius: 20px;
+  padding: 14px 20px;
+  box-shadow: var(--shadow);
+}
+.diagnosis-hero[hidden] { display: none; }
+.diagnosis-hero .dh-img { width: 64px; height: 64px; object-fit: contain; }
+.diagnosis-hero .dh-text { display: flex; flex-direction: column; gap: 2px; flex: 1; min-width: 0; }
+.diagnosis-hero .dh-text strong { font-family: var(--font-display); font-size: 17px; color: var(--color-primary-deep); }
+.diagnosis-hero .dh-text span { font-size: 13px; color: var(--color-muted); }
+.diagnosis-hero button {
+  border: none;
+  background: linear-gradient(135deg, #f0a3b4, #e58aa0);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  padding: 12px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  white-space: nowrap;
+}
+.diagnosis-hero button:hover { filter: brightness(1.05); }
+@media (max-width: 720px) {
+  .diagnosis-hero { flex-wrap: wrap; justify-content: center; text-align: center; }
+  .diagnosis-hero .dh-text { flex-basis: 100%; align-items: center; }
+}
+
 /* 結果シェアボタン */
 .share-row { display: flex; justify-content: flex-end; }
 .share-row button {
@@ -724,6 +761,7 @@ header .tagline { font-size: 13px; }
 }
 .share-dialog::backdrop { background: rgba(90, 60, 66, 0.45); backdrop-filter: blur(3px); }
 .share-dialog img { width: 100%; height: auto; border-radius: 14px; display: block; }
+.share-dialog-note { margin: 10px 4px 0; font-size: 12px; color: var(--color-muted); text-align: center; }
 .share-dialog-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
 .share-dialog-actions button {
   border: none;

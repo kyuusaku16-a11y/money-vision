@@ -54,20 +54,25 @@ function freshDefault() {
   };
 }
 
+// 保存データ・読み込みファイルを正しい形に整える（欠けはデフォルトで補完）
+export function normalizeState(p) {
+  if (!p || typeof p !== 'object') return freshDefault();
+  return {
+    version: 1,
+    inputs: { ...DEFAULT_INPUTS, ...(p.inputs || {}) },
+    advanced: { ...DEFAULT_ADVANCED, ...(p.advanced || {}) },
+    events: Array.isArray(p.events) ? p.events : [],
+    children: Array.isArray(p.children) ? p.children : [],
+    settings: { themeId: 'sprout', ...(p.settings || {}) },
+    scenarios: Array.isArray(p.scenarios) ? p.scenarios : [],
+  };
+}
+
 export function loadState(storage = globalThis.localStorage) {
   try {
     const raw = storage?.getItem(KEY);
     if (!raw) return freshDefault();
-    const p = JSON.parse(raw);
-    return {
-      version: 1,
-      inputs: { ...DEFAULT_INPUTS, ...(p.inputs || {}) },
-      advanced: { ...DEFAULT_ADVANCED, ...(p.advanced || {}) },
-      events: Array.isArray(p.events) ? p.events : [],
-      children: Array.isArray(p.children) ? p.children : [],
-      settings: { themeId: 'sprout', ...(p.settings || {}) },
-      scenarios: Array.isArray(p.scenarios) ? p.scenarios : [],
-    };
+    return normalizeState(JSON.parse(raw));
   } catch {
     return freshDefault();
   }

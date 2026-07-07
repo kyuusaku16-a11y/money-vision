@@ -1,6 +1,6 @@
 import { projectAssets, deriveKpis, educationCostAt, EDUCATION_COURSES } from './calc.js';
 import { buildComments } from './comments.js';
-import { loadState, saveState, DEFAULT_ADVANCED } from './storage.js';
+import { loadState, saveState, normalizeState, DEFAULT_ADVANCED } from './storage.js';
 import { renderChart } from './chart.js';
 import { fmtMoney, manToYen, yenToMan } from './format.js';
 import { deriveValidation } from './validation.js';
@@ -8,6 +8,7 @@ import { buildReaction } from './reactions.js';
 import { buildSchedule } from './schedule.js';
 import { buildShareText, renderShareCard } from './share.js';
 import { buildAdvice, buildNarrativeReport, findEducationPeak } from './advice.js';
+import { loadHistory, recordSnapshot, previousSnapshot, buildWelcomeBack } from './history.js';
 
 // フォーム定義。id は state のキー名と一致。unit は UI⇄state の変換則
 // （man=万円⇄円 / pct100=%⇄比率 / raw=そのまま）。
@@ -562,7 +563,7 @@ function renderEvents() {
   }
 }
 
-function renderReaction(reaction) {
+function renderReaction(reaction, duration = 4000) {
   const box = $('reaction');
   clearTimeout(reactionTimer);
   if (!reaction) {
@@ -575,7 +576,7 @@ function renderReaction(reaction) {
   box.hidden = false;
   reactionTimer = setTimeout(() => {
     box.hidden = true;
-  }, 4000);
+  }, duration);
 }
 
 function update({ withReaction = false } = {}) {
@@ -597,6 +598,7 @@ function update({ withReaction = false } = {}) {
   renderSchedule(buildSchedule(params));
   if (withReaction) renderReaction(buildReaction(prevKpis, kpis));
   prevKpis = kpis;
+  recordSnapshot(kpis); // 今月分のスナップショットを常に最新へ（来月の「前回とくらべて」用）
   syncSliders();
   chart = renderChart($('chart'), mainSeries, params, chart);
 }
@@ -610,6 +612,13 @@ function debounce(fn, ms) {
 }
 
 function init() {
+  // 保存データが無い＝初めての訪問。診断バナーを見せる判定は loadState より先に取る
+  let firstVisit = false;
+  try {
+    firstVisit = !localStorage.getItem('money-vision-state') && !localStorage.getItem('mv-hero-done');
+  } catch {
+    /* localStorage 不可なら常に非表示 */
+  }
   state = loadState();
   // デプロイ直後の新旧モジュール混在キャッシュ対策: 配列フィールドを保証する
   state.events ??= [];
@@ -643,11 +652,77 @@ function init() {
   });
   $('addEvent').addEventListener('click', () => addEventRow());
   $('shareBtn').addEventListener('click', openShareDialog);
+  if (firstVisit) $('diagnosisHero').hidden = false;
+  $('heroDiagnoseBtn').addEventListener('click', () => {
+    try {
+      localStorage.setItem('mv-hero-done', '1');
+    } catch {
+      /* 保存できなくても診断は続行 */
+    }
+    $('diagnosisHero').hidden = true;
+    openShareDialog();
+  });
   $('shareDoBtn').addEventListener('click', doShare);
   $('shareSaveBtn').addEventListener('click', saveShareImage);
   $('shareCloseBtn').addEventListener('click', () => $('shareDialog').close());
 
+  $('exportBtn').addEventListener('click', exportState);
+  $('importBtn').addEventListener('click', () => $('importFile').click());
+  $('importFile').addEventListener('change', (e) => {
+    const file = e.target.files?.[0];
+    if (file) importStateFile(file);
+    e.target.value = ''; // 同じファイルの再選択でも change を発火させる
+  });
+
+  // 「前回とくらべて」: 先月以前の記録を、update() が今月分を書く前に読んでおく
+  const prevSnap = previousSnapshot(loadHistory());
+
   update();
+
+  if (prevSnap && prevKpis) renderReaction(buildWelcomeBack(prevSnap, prevKpis), 8000);
+}
+
+// データの引っ越し（書き出し/読み込み。ファイルは端末内で完結）
+let backupMsgTimer = null;
+
+function showBackupMsg(text) {
+  const el = $('backupMsg');
+  clearTimeout(backupMsgTimer);
+  el.textContent = text;
+  el.hidden = false;
+  backupMsgTimer = setTimeout(() => {
+    el.hidden = true;
+  }, 8000);
+}
+
+function exportState() {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'マネービジョン設定.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  showBackupMsg('書き出しました。機種変更のときは新しい端末でこのファイルを読み込んでね');
+}
+
+function importStateFile(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const p = JSON.parse(reader.result);
+      if (!p || typeof p !== 'object' || !p.inputs) throw new Error('not a backup');
+      state = normalizeState(p);
+      saveState(state);
+      writeForm();
+      renderEvents();
+      renderChildren();
+      update();
+      showBackupMsg('読み込みました！グラフに反映されています');
+    } catch {
+      showBackupMsg('このファイルは読み込めませんでした。「設定を書き出す」で作ったファイルを選んでください');
+    }
+  };
+  reader.readAsText(file);
 }
 
 // 診断→ポップアップで結果カードを見せる→そこからシェア/保存
