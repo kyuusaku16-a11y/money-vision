@@ -116,8 +116,17 @@
         </div>
 
         <div class="share-row">
-          <button id="shareBtn" type="button">🌰 お金の性格を診断してシェア</button>
+          <button id="shareBtn" type="button">🌰 お金の性格を診断する</button>
         </div>
+
+        <dialog id="shareDialog" class="share-dialog">
+          <img id="shareCardImg" alt="お金の性格診断の結果カード" />
+          <div class="share-dialog-actions">
+            <button id="shareDoBtn" type="button">📤 シェアする</button>
+            <button id="shareSaveBtn" type="button">💾 画像を保存</button>
+            <button id="shareCloseBtn" type="button" class="ghost">とじる</button>
+          </div>
+        </dialog>
 
         <div class="panel chart-wrap">
           <div class="chart-box"><canvas id="chart"></canvas></div>

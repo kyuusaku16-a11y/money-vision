@@ -642,13 +642,18 @@ function init() {
     update();
   });
   $('addEvent').addEventListener('click', () => addEventRow());
-  $('shareBtn').addEventListener('click', shareResult);
+  $('shareBtn').addEventListener('click', openShareDialog);
+  $('shareDoBtn').addEventListener('click', doShare);
+  $('shareSaveBtn').addEventListener('click', saveShareImage);
+  $('shareCloseBtn').addEventListener('click', () => $('shareDialog').close());
 
   update();
 }
 
-// 結果シェア: モバイルはネイティブ共有シート、PCは画像保存＋X投稿画面
-async function shareResult() {
+// 診断→ポップアップで結果カードを見せる→そこからシェア/保存
+let currentShare = null; // { blob, file, text, url }
+
+async function openShareDialog() {
   const params = paramsOf(state);
   const series = projectAssets(params, params.expectedReturn / 100);
   const kpis = deriveKpis(series, params);
@@ -657,35 +662,49 @@ async function shareResult() {
 
   const canvas = await renderShareCard(kpis, params);
   const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-  const file = new File([blob], 'money-vision.png', { type: 'image/png' });
+  currentShare = {
+    blob,
+    file: new File([blob], 'money-vision.png', { type: 'image/png' }),
+    text,
+    url,
+  };
+  $('shareCardImg').src = canvas.toDataURL('image/png');
+  $('shareDialog').showModal();
+}
 
+// モバイルはネイティブ共有シート、PCはX投稿画面（画像は「保存」ボタンで）
+async function doShare() {
+  if (!currentShare) return;
+  const { file, text, url } = currentShare;
   if (navigator.canShare?.({ files: [file] })) {
     try {
       // url を独立フィールドで渡すと、共有先アプリでリンクとして扱われる
-      // （text 内にURLを重複させない。urlを無視するアプリ向けにはtext末尾にも保険で残す）
       await navigator.share({ files: [file], text, url });
       return;
     } catch (e) {
       if (e?.name === 'AbortError') return; // ユーザーがキャンセル
-      // url フィールド非対応の環境向けフォールバック
       try {
         await navigator.share({ files: [file], text: `${text} ${url}` });
         return;
       } catch {
-        /* さらに失敗したらPC用フォールバックへ */
+        /* PC用フォールバックへ */
       }
     }
   }
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = 'money-vision.png';
-  a.click();
-  URL.revokeObjectURL(a.href);
   window.open(
     `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`,
     '_blank',
     'noopener',
   );
+}
+
+function saveShareImage() {
+  if (!currentShare) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(currentShare.blob);
+  a.download = 'money-vision.png';
+  a.click();
+  URL.revokeObjectURL(a.href);
 }
 
 document.addEventListener('DOMContentLoaded', init);
