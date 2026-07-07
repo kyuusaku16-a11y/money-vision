@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>使い方と計算の仕組み｜マネービジョン</title>
+    <meta
+      name="description"
+      content="無料の資産シミュレーター「マネービジョン」の使い方、資産寿命の意味、計算の仕組み、よくある質問。登録不要・データは端末内にのみ保存されます。"
+    />
+    <meta property="og:title" content="使い方と計算の仕組み｜マネービジョン" />
+    <meta property="og:description" content="資産寿命って何？どう計算しているの？の答えをぜんぶ載せています。" />
+    <meta property="og:type" content="article" />
+    <meta property="og:locale" content="ja_JP" />
+    <meta property="og:url" content="https://kyuusaku16-a11y.github.io/money-vision/guide.html" />
+    <link rel="canonical" href="https://kyuusaku16-a11y.github.io/money-vision/guide.html" />
+    <link rel="icon" href="assets/sprout.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "マネービジョンは無料ですか？登録は必要ですか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "完全に無料で、会員登録も不要です。ページを開いてすぐに使えます。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "入力したお金のデータはどこに保存されますか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "すべてお使いの端末のブラウザ内にのみ保存されます。サーバーには一切送信されないため、運営者を含む第三者が入力内容を見ることはできません。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "資産寿命とは何ですか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "いまの収入・支出・積み立てのペースを続けた場合に、資産が何歳まで持つかを表した年齢です。マネービジョンではこの資産寿命をいちばん大事な指標として表示します。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "計算結果は正確ですか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "将来を単純化した簡易シミュレーションです。税金や社会保険料の細かい変化、相場の変動などは織り込んでいないため、結果はあくまで目安としてご利用ください。投資助言ではありません。"
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "お金の性格診断とは何ですか？",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "入力内容から「お金の流れ・運用姿勢・進み方・夢の大きさ」の4つの軸を読み取り、16タイプの動物キャラクターに当てはめる無料のお楽しみ診断です。診断結果に金額は含まれないので、安心してシェアできます。"
+            }
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body class="guide">
+    <header>
+      <div class="brand">
+        <img class="char-img" src="assets/pair-sit.png" alt="" aria-hidden="true" />
+        <div class="brand-text">
+          <h1>マネービジョン</h1>
+          <p class="tagline">使い方と計算の仕組み</p>
+        </div>
+      </div>
+    </header>
+
+    <main class="guide-main">
+      <article class="panel guide-body">
+        <p><a class="guide-back" href="./">← シミュレーターにもどる</a></p>
+
+        <h2>マネービジョンとは</h2>
+        <p>
+          年齢と毎月のお金の流れを入れるだけで、将来の資産の推移をグラフにする無料のシミュレーターです。
+          会員登録は不要で、入力したデータはお使いの端末の中にだけ保存されます。
+        </p>
+
+        <h2>資産寿命とは？</h2>
+        <p>
+          「いまのペースを続けたら、資産は何歳まで持つか」を表した年齢のことです。
+          老後のお金の不安は、正体が見えないことがいちばんの原因。マネービジョンは貯蓄額そのものではなく、
+          この<strong>資産寿命</strong>をいちばん大事な数字として表示します。
+          「100歳まで安心圏」なら、いまのペースで最後まで資産が持つ見込みという意味です。
+        </p>
+
+        <h2>どう計算しているの？</h2>
+        <p>仕組みはシンプルです。かくしごとが無いよう、ぜんぶ書いておきます。</p>
+        <ul>
+          <li><strong>2つの財布</strong> — 資産を「現金」と「投資」に分けて管理します。設定した利回り（複利）が付くのは投資分だけです。</li>
+          <li><strong>現役のあいだ</strong> — 毎年「手取り収入 −支出 −積立額」が現金に足され、積立額は投資へ移ります。</li>
+          <li><strong>退職後</strong> — 収入が年金に切り替わり、支出は設定した割合（初期値は現役の70%）に下がります。退職金があれば加算します。</li>
+          <li><strong>足りない年は</strong> — まず現金から取り崩し、現金が尽きたら投資分を取り崩します。取り崩した分に利回りは付きません。</li>
+          <li><strong>教育費</strong> — お子さまの年齢と進路コースから年ごとの教育費を見積もり、「いまの支出にすでに含まれている分」との差額だけを反映します（二重計上になりません）。</li>
+          <li><strong>住宅ローン</strong> — 完済年齢を過ぎると、返済分だけ支出が自動で軽くなります。</li>
+          <li><strong>利回り</strong> — 入力するのはインフレ分を引いたあとの利回りです。目安は弱気で2%・ふつう5%・強気8%。</li>
+        </ul>
+        <p>
+          資産寿命は、この計算で資産がゼロになる年齢です。最後（初期設定では100歳）まで資産が残れば「安心圏」と表示します。
+        </p>
+
+        <h2>毎月のきろく</h2>
+        <p>
+          月に1回「現在の資産」を最新にして記録すると、前回の計画と実際のズレを教えてくれます。
+          シミュレーションは作りっぱなしにせず、毎月の答え合わせに使うのがおすすめです。
+          記録日はスマホのカレンダーに登録できます。
+        </p>
+
+        <h2>よくある質問</h2>
+        <dl class="guide-faq">
+          <dt>無料ですか？登録は必要？</dt>
+          <dd>完全に無料・登録不要です。開いてすぐ使えます。</dd>
+          <dt>入力したデータはどこに保存されますか？</dt>
+          <dd>
+            すべて端末のブラウザ内にのみ保存されます。サーバーには送信されないので、運営者にも見えません。
+            機種変更のときは「詳しく設定」の最下部からファイルに書き出して引っ越しできます。
+          </dd>
+          <dt>計算結果は正確ですか？</dt>
+          <dd>
+            将来を単純化した簡易シミュレーションです。税金・社会保険料の細部や相場の変動は織り込んでいないので、目安としてご利用ください。
+            特定の金融商品をおすすめすることはありません（投資助言ではありません）。
+          </dd>
+          <dt>「お金の性格診断」って何？</dt>
+          <dd>
+            入力から「ためる/まわす・そだてる/まもる・地図/コンパス・大志/満ち足り」の4軸を読み取り、
+            16タイプの動物キャラに当てはめるお楽しみ診断です。結果カードに金額は入らないので、安心してシェアできます。
+          </dd>
+          <dt>アクセス解析はしていますか？</dt>
+          <dd>
+            Cookieを使わない匿名のアクセス解析（GoatCounter）で、ページや機能が使われた回数だけを数えています。
+            入力した金額などの中身は一切送信されません。
+          </dd>
+        </dl>
+
+        <p class="guide-cta"><a href="./">🌱 シミュレーターをひらく（無料・登録不要）</a></p>
+      </article>
+    </main>
+
+    <footer>
+      <p>マネービジョンは簡易シミュレーションです。投資助言ではなく、将来の成果を保証するものでもありません。</p>
+      <p><a href="./">トップにもどる</a></p>
+    </footer>
+    <script data-goatcounter="https://money-vision.goatcounter.com/count" async src="vendor/count.js"></script>
+  </body>
+</html>

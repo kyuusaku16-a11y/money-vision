@@ -773,6 +773,16 @@ function init() {
   else if (seasonal) renderReaction({ type: 'improved', ...seasonal }, 8000);
 }
 
+// 匿名イベント計測: 何回使われたかの回数だけをGoatCounterに送る。
+// 入力値・診断結果などの中身は一切送らない（フッターの明記どおり）
+function trackEvent(name) {
+  try {
+    window.goatcounter?.count?.({ path: name, title: name, event: true });
+  } catch {
+    /* 解析が使えなくても機能には影響させない */
+  }
+}
+
 // 毎月のきろく（実績記録）: 記録状況・連続月数・計画とのズレ・ミニバーを描く
 function renderTrack() {
   const ymNow = monthOf();
@@ -809,6 +819,7 @@ function renderTrack() {
 }
 
 function recordThisMonth() {
+  trackEvent('record');
   const params = paramsOf(state);
   const series = projectAssets(params, params.expectedReturn / 100);
   markRecorded(globalThis.localStorage, {
@@ -820,6 +831,7 @@ function recordThisMonth() {
 }
 
 function downloadRecordCalendar() {
+  trackEvent('calendar');
   const blob = new Blob([buildRecordIcs()], { type: 'text/calendar' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -842,6 +854,7 @@ function showBackupMsg(text) {
 }
 
 function exportState() {
+  trackEvent('backup-export');
   const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -863,6 +876,7 @@ function importStateFile(file) {
       renderEvents();
       renderChildren();
       update();
+      trackEvent('backup-import');
       showBackupMsg('読み込みました！グラフに反映されています');
     } catch {
       showBackupMsg('このファイルは読み込めませんでした。「設定を書き出す」で作ったファイルを選んでください');
@@ -875,6 +889,7 @@ function importStateFile(file) {
 let currentShare = null; // { blob, file, text, url }
 
 async function openShareDialog() {
+  trackEvent('diagnosis');
   const params = paramsOf(state);
   const series = projectAssets(params, params.expectedReturn / 100);
   const kpis = deriveKpis(series, params);
@@ -896,6 +911,7 @@ async function openShareDialog() {
 // モバイルはネイティブ共有シート、PCはX投稿画面（画像は「保存」ボタンで）
 async function doShare() {
   if (!currentShare) return;
+  trackEvent('share');
   const { file, text, url } = currentShare;
   if (navigator.canShare?.({ files: [file] })) {
     try {
@@ -921,6 +937,7 @@ async function doShare() {
 
 function saveShareImage() {
   if (!currentShare) return;
+  trackEvent('share-save');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(currentShare.blob);
   a.download = 'money-vision.png';
