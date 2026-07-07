@@ -286,11 +286,46 @@ function renderSchedule(rows) {
   const list = $('scheduleList');
   list.innerHTML = '';
   panel.hidden = false;
+  // 登録内容を集計して「あなたの数字」を出すミニダッシュボード
+  const children = state.children ?? [];
+  let eduTotal = 0;
+  for (const c of children) {
+    for (let a = Math.max(0, c.age); a <= 21; a++) eduTotal += educationCostAt(a);
+  }
+  const HOME_WORDS = ['住', '家', '頭金', 'リフォーム', 'マンション', '引越', '引っ越'];
+  const isHome = (ev) => HOME_WORDS.some((w) => (ev.label ?? '').includes(w));
+  const events = state.events ?? [];
+  const homeEvents = events.filter(isHome);
+  const otherEvents = events.filter((ev) => !isHome(ev));
+  const sumOf = (list) => list.reduce((s, e) => s + (e.amount || 0), 0);
+
+  const jumpTo = (id) => {
+    $('advanced').open = true;
+    $(id).scrollIntoView({ behavior: 'smooth', block: 'center' });
+  };
+  const openTimeline = () => {
+    timelineOpen = true;
+    const det = document.querySelector('.timeline-details');
+    if (det) {
+      det.open = true;
+      det.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  };
+  const eventLabel = (list) =>
+    `登録${list.length}件（${(list[0].label || 'イベント').slice(0, 8)}${list.length > 1 ? ' ほか' : ''}）`;
+
   const cards = [
-    { cls: 'edu', iconImg: 'assets/grad-cap.png', title: '教育費', sub: 'お子さま1人あたり', amount: '約 1,000〜1,500万円', target: 'addChild' },
-    { cls: 'home', iconImg: 'assets/house.png', title: '住まいの費用', sub: '購入・建て替えなど', amount: '約 2,000〜4,000万円', target: 'addEvent' },
-    { cls: 'other', iconImg: 'assets/bag.png', title: 'その他の大型支出', sub: '車の買替え・介護費用など', amount: '数百〜数千万円', target: 'addEvent' },
+    children.length > 0 && eduTotal > 0
+      ? { cls: 'edu registered', iconImg: 'assets/grad-cap.png', title: '教育費', sub: `お子さま${children.length}人 登録済み`, amount: `これから 合計 約${fmtMoney(eduTotal)}`, btn: '内訳を見る', onClick: openTimeline }
+      : { cls: 'edu', iconImg: 'assets/grad-cap.png', title: '教育費', sub: 'お子さま1人あたりの目安', amount: '約 1,000〜1,500万円', btn: '＋ 子どもを追加', onClick: () => jumpTo('addChild') },
+    homeEvents.length > 0
+      ? { cls: 'home registered', iconImg: 'assets/house.png', title: '住まいの費用', sub: eventLabel(homeEvents), amount: `合計 約${fmtMoney(sumOf(homeEvents))}`, btn: '編集する', onClick: () => jumpTo('addEvent') }
+      : { cls: 'home', iconImg: 'assets/house.png', title: '住まいの費用', sub: '購入・建て替えなどの目安', amount: '約 2,000〜4,000万円', btn: '＋ 追加する', onClick: () => jumpTo('addEvent') },
+    otherEvents.length > 0
+      ? { cls: 'other registered', iconImg: 'assets/bag.png', title: 'その他の大型支出', sub: eventLabel(otherEvents), amount: `合計 約${fmtMoney(sumOf(otherEvents))}`, btn: '編集する', onClick: () => jumpTo('addEvent') }
+      : { cls: 'other', iconImg: 'assets/bag.png', title: 'その他の大型支出', sub: '車の買替え・介護費用など', amount: '数百〜数千万円', btn: '＋ 追加する', onClick: () => jumpTo('addEvent') },
   ];
+
   const grid = document.createElement('div');
   grid.className = 'expense-cards';
   for (const c of cards) {
@@ -310,17 +345,14 @@ function renderSchedule(rows) {
     amount.textContent = c.amount;
     const button = document.createElement('button');
     button.type = 'button';
-    button.textContent = '設定で詳細を確認';
-    button.addEventListener('click', () => {
-      $('advanced').open = true;
-      $(c.target).scrollIntoView({ behavior: 'smooth', block: 'center' });
-    });
+    button.textContent = c.btn;
+    button.addEventListener('click', c.onClick);
     card.append(title, sub, amount, button);
     grid.appendChild(card);
   }
   const note = document.createElement('p');
   note.className = 'expense-note';
-  note.textContent = '※金額は目安です。詳細は「詳しく設定」からご確認ください。';
+  note.textContent = '※未登録の項目は一般的な目安を表示しています。登録すると、あなたの合計に変わります。';
   list.append(grid, note);
   if (rows.length === 0) return;
   // 「詳しく見る」開閉式の予定表（再描画をまたいで開閉状態を保つ）

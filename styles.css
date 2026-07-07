@@ -686,3 +686,6 @@ header .tagline { font-size: 13px; }
   header .tagline { font-size: 11px; }
   header .char-img { width: 68px; height: 52px; }
 }
+
+/* 登録済みの支出カードは「あなたの数字」を強調 */
+.expense-card.registered .expense-amount { color: var(--color-primary-deep); font-weight: 700; }
