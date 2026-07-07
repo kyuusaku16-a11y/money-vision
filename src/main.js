@@ -20,6 +20,7 @@ import {
   monthOf,
 } from './history.js';
 import { seasonalMessage } from './seasonal.js';
+import { stampsThisMonth, stampToday, stampCharFor, milestoneMessage, dailyQuote } from './stamps.js';
 import { UPDATES, NOTE_ARTICLES } from './updates.js';
 
 // フォーム定義。id は state のキー名と一致。unit は UI⇄state の変換則
@@ -811,6 +812,8 @@ function init() {
   barObserver.observe(document.querySelector('.kpis'));
   barObserver.observe(document.querySelector('.chart-wrap'));
 
+  renderStamps();
+  $('stampBtn').addEventListener('click', pressStamp);
   $('recordBtn').addEventListener('click', openRecordDialog);
   $('recordDoBtn').addEventListener('click', doRecord);
   $('recordCancelBtn').addEventListener('click', () => $('recordDialog').close());
@@ -889,6 +892,41 @@ function trackEvent(name) {
   }
 }
 
+// ログインスタンプ帳: 1日1回自分で押す。連続日数では縛らない（月間集計のみ）
+function renderStamps({ justAdded = false } = {}) {
+  const now = new Date();
+  const days = stampsThisMonth(globalThis.localStorage, now);
+  $('stampMonthLabel').textContent = `${now.getMonth() + 1}月`;
+  $('stampCount').textContent = days.length ? `今月 ${days.length}個` : '';
+  const row = $('stampsRow');
+  row.textContent = '';
+  for (const day of days) {
+    const img = document.createElement('img');
+    img.src = stampCharFor(day);
+    img.alt = '';
+    img.title = `${day}日`;
+    img.className = 'stamp-icon';
+    row.appendChild(img);
+  }
+  if (justAdded && row.lastChild) row.lastChild.classList.add('pop');
+  const stampedToday = days.includes(now.getDate());
+  const btn = $('stampBtn');
+  btn.disabled = stampedToday;
+  btn.textContent = stampedToday ? '✅ 今日のスタンプは押したよ' : '🌸 今日のスタンプを押す';
+}
+
+function pressStamp() {
+  const now = new Date();
+  const res = stampToday(globalThis.localStorage, now);
+  if (!res.added) return;
+  trackEvent('stamp');
+  renderStamps({ justAdded: true });
+  // ごほうび: 節目なら特別メッセージ、ふだんは日替わりひとこと
+  const quote = $('stampQuote');
+  quote.textContent = milestoneMessage(res.count) ?? dailyQuote(now);
+  quote.hidden = false;
+}
+
 // 今月の資産チェック: パネルは状況表示だけ。入力→記録→ごほうびはダイアログで完結
 function renderTrack() {
   const ymNow = monthOf();
@@ -958,6 +996,8 @@ function doRecord() {
   $('recordChar').src = delta?.type === 'gentle' ? 'assets/bear.png' : 'assets/rabbit-joy.png';
   const lines = [delta ? delta.text : 'きろくしたよ！来月もいっしょに見よう🌱'];
   if (streak >= 2) lines.push(`${streak}ヶ月連続でチェック中🌱`);
+  const stampCount = stampsThisMonth().length;
+  if (stampCount >= 5) lines.push(`今月は${stampCount}回も会えたね🌸`);
   $('recordResultText').textContent = lines.join('\n');
   const recs = hist.filter((s) => s.recordedAsset != null).slice(-6);
   const trend = $('recordTrend');

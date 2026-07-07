@@ -819,6 +819,36 @@ footer .footer-link { color: var(--color-primary-deep); }
 .type-tags { margin: 4px 0 6px; font-size: 11px; color: var(--color-muted); }
 .type-quote { margin: 0; font-size: 12px; line-height: 1.7; color: var(--color-ink); text-align: left; }
 
+/* ログインスタンプ帳 */
+.stamps { margin-top: 4px; padding: 12px 16px; }
+.stamps-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 6px; }
+.stamps-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; color: var(--color-primary-deep); }
+.stamps-count { font-size: 12px; color: var(--color-muted); }
+.stamps-row { display: flex; flex-wrap: wrap; gap: 4px; min-height: 28px; margin-bottom: 8px; }
+.stamp-icon { width: 26px; height: 26px; object-fit: contain; background: #fdeef1; border-radius: 50%; padding: 2px; }
+.stamp-icon.pop { animation: stamp-pop 0.4s ease; }
+@keyframes stamp-pop {
+  0% { transform: scale(0) rotate(-20deg); }
+  70% { transform: scale(1.4); }
+  100% { transform: scale(1); }
+}
+#stampBtn {
+  border: none;
+  background: linear-gradient(135deg, #f0a3b4, #e58aa0);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 13px;
+  padding: 8px 16px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+#stampBtn:hover:not(:disabled) { filter: brightness(1.05); }
+#stampBtn:disabled { background: var(--color-line); color: var(--color-muted); cursor: default; box-shadow: none; }
+.stamp-quote { margin: 8px 0 0; font-size: 13px; color: var(--color-ink); background: #fdeef1; border-radius: 10px; padding: 8px 12px; }
+.stamp-quote[hidden] { display: none; }
+
 /* 毎月のきろく（実績記録） */
 .track { margin-top: 16px; }
 .track-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
