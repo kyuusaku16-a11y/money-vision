@@ -149,9 +149,13 @@
 
     <footer>
       <p>マネービジョンは簡易シミュレーションです。投資助言ではなく、将来の成果を保証するものでもありません。</p>
-      <p>入力データはこの端末のブラウザ内にのみ保存されます（外部送信はありません）。</p>
+      <p>入力データはこの端末のブラウザ内にのみ保存され、入力内容が外部へ送信されることはありません。</p>
+      <p>アクセス数の把握のため、Cookieを使わない匿名のアクセス解析（GoatCounter）を利用しています。</p>
     </footer>
 
     <script type="module" src="src/main.js"></script>
+    <!-- アクセス解析: GoatCounter（Cookieなし・匿名・入力値は送信されない）。
+         スクリプトはCDN汚染リスクを避けるためセルフホスト（vendor/count.js） -->
+    <script data-goatcounter="https://money-vision.goatcounter.com/count" async src="vendor/count.js"></script>
   </body>
 </html>

@@ -661,10 +661,19 @@ async function shareResult() {
 
   if (navigator.canShare?.({ files: [file] })) {
     try {
-      await navigator.share({ files: [file], text: `${text} ${url}` });
+      // url を独立フィールドで渡すと、共有先アプリでリンクとして扱われる
+      // （text 内にURLを重複させない。urlを無視するアプリ向けにはtext末尾にも保険で残す）
+      await navigator.share({ files: [file], text, url });
       return;
-    } catch {
-      /* ユーザーキャンセル等はフォールバックへ */
+    } catch (e) {
+      if (e?.name === 'AbortError') return; // ユーザーがキャンセル
+      // url フィールド非対応の環境向けフォールバック
+      try {
+        await navigator.share({ files: [file], text: `${text} ${url}` });
+        return;
+      } catch {
+        /* さらに失敗したらPC用フォールバックへ */
+      }
     }
   }
   const a = document.createElement('a');
