@@ -92,9 +92,15 @@ summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color
 .validation { margin: 10px 0 0; padding: 10px 12px; border-radius: 10px; font-size: 12px; line-height: 1.6; background: var(--color-warn-bg); color: var(--color-warn); }
 
 .results { display: flex; flex-direction: column; gap: 20px; }
-/* グラフ以降のじっくり系はPCで全幅を使う */
+/* グラフ以降: きろく帳〜締めカードはPCで右カラム続き、診断〜よみものは全幅 */
+.results-mid { display: flex; flex-direction: column; gap: 20px; }
+.results-mid > * { min-width: 0; }
 .results-more { display: flex; flex-direction: column; gap: 20px; grid-column: 1 / -1; }
 .results-more > * { min-width: 0; }
+@media (min-width: 721px) {
+  .panel.form { grid-row: span 2; } /* 右カラム2段（結果+じっくり系）にまたがる */
+  .results-mid { grid-column: 2; }
+}
 .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .kpi {
   background: rgba(255, 253, 247, 0.93);
@@ -207,7 +213,8 @@ summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color
   .diagnosis-hero { order: 0; }
   .results { order: 1; }
   .panel.form { order: 2; }
-  .results-more { order: 3; }
+  .results-mid { order: 3; }
+  .results-more { order: 4; }
   .kpis { grid-template-columns: repeat(2, 1fr); }
   .below-chart { grid-template-columns: 1fr; }
   .comments { grid-template-columns: 1fr; }
