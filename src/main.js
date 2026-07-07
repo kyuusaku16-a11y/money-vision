@@ -16,7 +16,7 @@ import {
   markRecorded,
   recordStreak,
   latestRecordBefore,
-  buildProgressText,
+  buildRecordDelta,
   monthOf,
 } from './history.js';
 import { seasonalMessage } from './seasonal.js';
@@ -812,7 +812,10 @@ function init() {
   barObserver.observe(document.querySelector('.kpis'));
   barObserver.observe(document.querySelector('.chart-wrap'));
 
-  $('recordBtn').addEventListener('click', recordThisMonth);
+  $('recordBtn').addEventListener('click', openRecordDialog);
+  $('recordDoBtn').addEventListener('click', doRecord);
+  $('recordCancelBtn').addEventListener('click', () => $('recordDialog').close());
+  $('recordDoneBtn').addEventListener('click', () => $('recordDialog').close());
   $('calendarBtn').addEventListener('click', downloadRecordCalendar);
   $('saveScenarioBtn').addEventListener('click', saveCurrentScenario);
   renderScenarios();
@@ -888,7 +891,7 @@ function trackEvent(name) {
   }
 }
 
-// 毎月のきろく（実績記録）: 記録状況・連続月数・計画とのズレ・ミニバーを描く
+// 今月の資産チェック: パネルは状況表示だけ。入力→記録→ごほうびはダイアログで完結
 function renderTrack() {
   const ymNow = monthOf();
   const hist = loadHistory();
@@ -897,34 +900,50 @@ function renderTrack() {
   const streak = recordStreak(hist, ymNow);
   const status = $('trackStatus');
   if (recorded) {
-    const progress = buildProgressText(latestRecordBefore(hist, ymNow), cur);
-    let text = streak >= 2 ? `✅ 今月は記録ずみ（${streak}ヶ月連続🌱）` : '✅ 今月は記録ずみ';
-    if (progress) text += ` — ${progress.text}`;
+    const delta = buildRecordDelta(latestRecordBefore(hist, ymNow), cur);
+    let text = streak >= 2 ? `✅ 今月はチェックずみ（${streak}ヶ月連続🌱）` : '✅ 今月はチェックずみ';
+    if (delta) text += ` — ${delta.text}`;
     status.textContent = text;
-    $('recordBtn').textContent = '📒 記録を更新する';
+    $('recordBtn').textContent = '📒 記録を見る・直す';
   } else {
-    status.textContent =
-      streak === 0 && !latestRecordBefore(hist, ymNow)
-        ? '毎月1回、資産を記録してみよう。つづけるとグラフの答え合わせができるよ'
-        : 'まだ今月の記録がないよ。「現在の資産」を最新にして記録しよう';
-    $('recordBtn').textContent = '📒 今月の資産を記録する';
+    status.textContent = latestRecordBefore(hist, ymNow)
+      ? 'まだ今月のチェックがないよ。1分で終わります'
+      : '月に1回きろくすると、「ふえた・減った」が見えるようになるよ';
+    $('recordBtn').textContent = '📒 今月の資産をチェック';
   }
-  const bars = $('trackBars');
-  bars.textContent = '';
-  const recs = hist.filter((s) => s.recordedAsset != null).slice(-12);
-  const max = Math.max(...recs.map((r) => r.recordedAsset), 1);
-  for (const r of recs) {
-    const b = document.createElement('span');
-    b.className = 'track-bar';
-    b.style.height = `${Math.max(8, Math.round((r.recordedAsset / max) * 40))}px`;
-    b.title = r.ym;
-    bars.appendChild(b);
-  }
-  bars.hidden = recs.length < 2;
 }
 
-function recordThisMonth() {
+function openRecordDialog() {
+  trackEvent('record-open');
+  const ymNow = monthOf();
+  const hist = loadHistory();
+  const prev = latestRecordBefore(hist, ymNow);
+  const cur = hist.find((s) => s.ym === ymNow);
+  $('recordAsset').value = yenToMan(state.inputs.totalAsset);
+  const note = $('recordPrevNote');
+  if (cur?.recordedAsset != null) {
+    note.textContent = `今月の記録: ${yenToMan(cur.recordedAsset)}万円（きろくし直すと上書きされます）`;
+  } else if (prev) {
+    note.textContent = `前回（${Number(prev.ym.split('-')[1])}月）の記録: ${yenToMan(prev.recordedAsset)}万円`;
+  } else {
+    note.textContent = 'はじめてのきろく。来月から「ふえた・減った」が見えるようになるよ';
+  }
+  $('recordFormZone').hidden = false;
+  $('recordResultZone').hidden = true;
+  $('recordDialog').showModal();
+}
+
+function doRecord() {
+  const man = Number($('recordAsset').value);
+  if (!Number.isFinite(man) || man < 0) return;
   trackEvent('record');
+  const ymNow = monthOf();
+  const prev = latestRecordBefore(loadHistory(), ymNow);
+
+  // 「現在の資産」の入力欄にも反映してから再計算（二度手間をなくす）
+  $('totalAsset').value = man;
+  update();
+
   const params = paramsOf(state);
   const series = projectAssets(params, params.expectedReturn / 100);
   markRecorded(globalThis.localStorage, {
@@ -932,7 +951,27 @@ function recordThisMonth() {
     projected1y: series[1]?.assets ?? params.totalAsset,
   });
   renderTrack();
-  renderReaction({ type: 'improved', text: 'きろくしたよ！来月もいっしょに見よう🌱' }, 6000);
+
+  // ごほうび画面: 前回比 → 連続 → 推移
+  const hist = loadHistory();
+  const cur = hist.find((s) => s.ym === ymNow);
+  const delta = buildRecordDelta(prev, cur);
+  const streak = recordStreak(hist, ymNow);
+  $('recordChar').src = delta?.type === 'gentle' ? 'assets/bear.png' : 'assets/rabbit-joy.png';
+  const lines = [delta ? delta.text : 'きろくしたよ！来月もいっしょに見よう🌱'];
+  if (streak >= 2) lines.push(`${streak}ヶ月連続でチェック中🌱`);
+  $('recordResultText').textContent = lines.join('\n');
+  const recs = hist.filter((s) => s.recordedAsset != null).slice(-6);
+  const trend = $('recordTrend');
+  if (recs.length >= 2) {
+    trend.textContent =
+      recs.map((r) => `${Number(r.ym.split('-')[1])}月 ${yenToMan(r.recordedAsset)}`).join(' → ') + '（万円）';
+    trend.hidden = false;
+  } else {
+    trend.hidden = true;
+  }
+  $('recordFormZone').hidden = true;
+  $('recordResultZone').hidden = false;
 }
 
 function downloadRecordCalendar() {

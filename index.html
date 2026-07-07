@@ -143,6 +143,28 @@
           <button id="shareBtn" type="button">🌰 お金の性格を診断する</button>
         </div>
 
+        <dialog id="recordDialog" class="share-dialog record-dialog">
+          <h3 class="record-title">📒 今月の資産チェック</h3>
+          <div id="recordFormZone">
+            <label class="record-label">いまの資産（万円）
+              <input type="number" id="recordAsset" min="0" step="10" />
+            </label>
+            <p class="field-note" id="recordPrevNote"></p>
+            <div class="share-dialog-actions">
+              <button id="recordDoBtn" type="button">📒 きろくする</button>
+              <button id="recordCancelBtn" type="button" class="ghost">とじる</button>
+            </div>
+          </div>
+          <div id="recordResultZone" hidden>
+            <img class="record-char" id="recordChar" src="assets/rabbit-joy.png" alt="" aria-hidden="true" />
+            <p class="record-result" id="recordResultText"></p>
+            <p class="record-trend" id="recordTrend" hidden></p>
+            <div class="share-dialog-actions">
+              <button id="recordDoneBtn" type="button">とじる</button>
+            </div>
+          </div>
+        </dialog>
+
         <dialog id="shareDialog" class="share-dialog">
           <img id="shareCardImg" alt="お金の性格診断の結果カード" />
           <p class="share-dialog-note">
@@ -169,15 +191,14 @@
         <div class="panel track" id="track">
           <div class="track-head">
             <img src="assets/rabbit-book.png" alt="" aria-hidden="true" />
-            <h2>毎月のきろく</h2>
+            <h2>今月の資産チェック</h2>
           </div>
           <p class="track-status" id="trackStatus"></p>
-          <div class="track-bars" id="trackBars" aria-hidden="true" hidden></div>
           <div class="track-actions">
-            <button id="recordBtn" type="button">📒 今月の資産を記録する</button>
-            <button id="calendarBtn" type="button" class="track-ghost">📅 記録日をカレンダーに</button>
+            <button id="recordBtn" type="button">📒 今月の資産をチェック</button>
+            <button id="calendarBtn" type="button" class="track-ghost">📅 チェック日をカレンダーに</button>
           </div>
-          <p class="field-note">「現在の資産」を最新にして記録すると、計画とのズレを毎月お知らせします（数字は端末内のみ）</p>
+          <p class="field-note">月に1回、いまの資産をきろくするだけ。ふえたか減ったか、毎月教えます（数字は端末内のみ）</p>
           <p class="field-note pwa-hint" id="pwaHint" hidden>
             💡 このページを「ホーム画面に追加」しておくと、毎月1タップで開けます
             <button id="pwaHintClose" type="button" aria-label="閉じる">×</button>

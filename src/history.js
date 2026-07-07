@@ -76,18 +76,18 @@ export function latestRecordBefore(history, ym = monthOf()) {
   return prior.length ? prior[prior.length - 1] : null;
 }
 
-// 前回の記録時に立てた計画（projected1y）を月割りにして、実績と比べる
-export function buildProgressText(prev, curr) {
-  if (!prev || prev.recordedAsset == null || prev.projected1y == null || curr?.recordedAsset == null) {
-    return null;
+// 前回の記録との実額差をシンプルに伝える（難しい月割り計算はしない・責めない）
+export function buildRecordDelta(prev, curr) {
+  if (!prev || prev.recordedAsset == null || curr?.recordedAsset == null) return null;
+  const prevMonth = `${Number(prev.ym.split('-')[1])}月`;
+  const diffMan = Math.round((curr.recordedAsset - prev.recordedAsset) / 10000);
+  if (Math.abs(diffMan) < 1) {
+    return { type: 'improved', text: `前回（${prevMonth}）とほぼ同じ。キープも立派！` };
   }
-  const gap = ymToNum(curr.ym) - ymToNum(prev.ym);
-  if (gap <= 0) return null;
-  const expected = prev.recordedAsset + ((prev.projected1y - prev.recordedAsset) * gap) / 12;
-  const diffMan = Math.round((curr.recordedAsset - expected) / 10000);
-  if (Math.abs(diffMan) < 1) return { type: 'improved', text: 'ほぼ予定どおり！いいペースだよ🌱' };
-  if (diffMan > 0) return { type: 'improved', text: `予定より約${diffMan}万円さきを進んでるよ🌱` };
-  return { type: 'gentle', text: `予定より約${-diffMan}万円ゆっくりペース。あせらずいこう` };
+  if (diffMan > 0) {
+    return { type: 'improved', text: `前回（${prevMonth}）より +${diffMan}万円 ふえたよ！` };
+  }
+  return { type: 'gentle', text: `前回（${prevMonth}）より −${-diffMan}万円。使う月もあるさ、だいじょうぶ` };
 }
 
 // 今月分を除いた、いちばん新しい記録

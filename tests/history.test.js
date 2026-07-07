@@ -9,7 +9,7 @@ import {
   markRecorded,
   recordStreak,
   latestRecordBefore,
-  buildProgressText,
+  buildRecordDelta,
 } from '../src/history.js';
 
 function fakeStorage() {
@@ -145,27 +145,22 @@ test('latestRecordBefore: 今月より前の直近の記録済みエントリ', 
   assert.equal(latestRecordBefore([], '2026-07'), null);
 });
 
-test('buildProgressText: 予定との差を万円で伝える（前向きな文言）', () => {
-  const prev = { ym: '2026-06', recordedAsset: 5000000, projected1y: 6200000 }; // 月あたり+10万の計画
-  // 1ヶ月後: 予定510万 → 実績530万 = +20万
-  const ahead = buildProgressText(prev, { ym: '2026-07', recordedAsset: 5300000 });
-  assert.equal(ahead.type, 'improved');
-  assert.ok(ahead.text.includes('20万円'));
-  // 実績495万 = -15万（責めない文言）
-  const behind = buildProgressText(prev, { ym: '2026-07', recordedAsset: 4950000 });
-  assert.equal(behind.type, 'gentle');
-  assert.ok(behind.text.includes('15万円'));
-  assert.ok(!behind.text.includes('遅れ'));
-  // ±1万未満はほぼ予定どおり
-  const onTrack = buildProgressText(prev, { ym: '2026-07', recordedAsset: 5100000 });
-  assert.ok(onTrack.text.includes('予定どおり'));
+test('buildRecordDelta: 前回の記録との実額差をシンプルに伝える', () => {
+  const prev = { ym: '2026-06', recordedAsset: 5000000 };
+  const up = buildRecordDelta(prev, { ym: '2026-07', recordedAsset: 5120000 });
+  assert.equal(up.type, 'improved');
+  assert.ok(up.text.includes('+12万円'));
+  assert.ok(up.text.includes('6月')); // 前回がいつかを添える
+  const down = buildRecordDelta(prev, { ym: '2026-07', recordedAsset: 4800000 });
+  assert.equal(down.type, 'gentle');
+  assert.ok(down.text.includes('20万円'));
+  assert.ok(!down.text.includes('遅れ')); // 責めない
+  const same = buildRecordDelta(prev, { ym: '2026-07', recordedAsset: 5004000 }); // ±1万未満
+  assert.equal(same.type, 'improved');
+  assert.ok(same.text.includes('同じ'));
 });
 
-test('buildProgressText: 数ヶ月あいても月割りで比較・データ不足はnull', () => {
-  const prev = { ym: '2026-01', recordedAsset: 5000000, projected1y: 6200000 };
-  // 6ヶ月後: 予定560万 → 実績560万
-  const ok = buildProgressText(prev, { ym: '2026-07', recordedAsset: 5600000 });
-  assert.ok(ok.text.includes('予定どおり'));
-  assert.equal(buildProgressText(null, { ym: '2026-07', recordedAsset: 1 }), null);
-  assert.equal(buildProgressText({ ym: '2026-06', recordedAsset: 5000000 }, { ym: '2026-07', recordedAsset: 1 }), null); // projected1y なし
+test('buildRecordDelta: データ不足は null', () => {
+  assert.equal(buildRecordDelta(null, { ym: '2026-07', recordedAsset: 1 }), null);
+  assert.equal(buildRecordDelta({ ym: '2026-06' }, { ym: '2026-07', recordedAsset: 1 }), null);
 });

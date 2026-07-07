@@ -825,10 +825,6 @@ footer .footer-link { color: var(--color-primary-deep); }
 .track-head img { height: 44px; width: auto; object-fit: contain; }
 .track-head h2 { margin: 0; font-size: 17px; font-family: var(--font-display); color: var(--color-ink); }
 .track-status { margin: 4px 0 10px; font-size: 14px; }
-.track-bars { display: flex; align-items: flex-end; gap: 4px; height: 44px; margin: 0 0 10px; }
-.track-bars[hidden] { display: none; }
-.track-bar { width: 12px; background: var(--color-primary); border-radius: 4px 4px 0 0; opacity: 0.85; }
-.track-bar:last-child { background: var(--color-primary-deep); opacity: 1; }
 .track-actions { display: flex; gap: 10px; flex-wrap: wrap; }
 .track-actions button {
   border: none;
@@ -908,6 +904,29 @@ footer .footer-link { color: var(--color-primary-deep); }
 }
 .share-dialog::backdrop { background: rgba(90, 60, 66, 0.45); backdrop-filter: blur(3px); }
 .share-dialog img { width: 100%; height: auto; border-radius: 14px; display: block; }
+
+/* 今月の資産チェックのダイアログ */
+.record-dialog { max-width: min(400px, 92vw); text-align: center; }
+.record-title { margin: 4px 0 14px; font-family: var(--font-display); font-size: 18px; color: var(--color-primary-deep); }
+.record-label { display: block; font-size: 13px; color: var(--color-muted); }
+.record-label input {
+  display: block;
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px;
+  font-size: 22px;
+  text-align: center;
+  font-family: var(--font-display);
+  border: 2px solid var(--color-line);
+  border-radius: 12px;
+  box-sizing: border-box;
+}
+.record-label input:focus { outline: none; border-color: var(--color-primary); }
+.record-dialog .field-note { text-align: center; }
+.record-dialog img.record-char { width: 92px; height: 92px; object-fit: contain; margin: 0 auto 6px; border-radius: 0; }
+.record-result { margin: 4px 0 10px; font-family: var(--font-display); font-weight: 700; font-size: 16px; color: var(--color-ink); white-space: pre-line; }
+.record-trend { margin: 0 0 12px; font-size: 13px; color: var(--color-muted); }
+.record-trend[hidden] { display: none; }
 .share-dialog-note { margin: 10px 4px 0; font-size: 12px; color: var(--color-muted); text-align: center; }
 .share-dialog-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
 .share-dialog-actions button {
