@@ -1,4 +1,4 @@
-import { projectAssets, deriveKpis } from './calc.js';
+import { projectAssets, deriveKpis, educationCostAt } from './calc.js';
 import { buildComments } from './comments.js';
 import { loadState, saveState, DEFAULT_ADVANCED } from './storage.js';
 import { renderChart } from './chart.js';
@@ -6,7 +6,7 @@ import { fmtMoney, manToYen, yenToMan } from './format.js';
 import { deriveValidation } from './validation.js';
 import { buildReaction } from './reactions.js';
 import { buildSchedule } from './schedule.js';
-import { buildAdvice, buildNarrativeReport } from './advice.js';
+import { buildAdvice, buildNarrativeReport, findEducationPeak } from './advice.js';
 
 // フォーム定義。id は state のキー名と一致。unit は UI⇄state の変換則
 // （man=万円⇄円 / pct100=%⇄比率 / raw=そのまま）。
@@ -189,23 +189,55 @@ function renderComments(cards, summary) {
   if (summary) summaryBox.appendChild(makeCommentCard(summary));
 }
 
-function buildGuidanceCards(params, comments, advice) {
+function buildGuidanceCards(params, series, comments, advice) {
+  // あなたの積み立て: 累計と複利の育ちを実数で見せる
+  const years = params.retireAge - params.currentAge;
+  const contribTotal = params.monthlyInvest * 12 * Math.max(0, years);
+  const atRetire = series.find((p) => p.age === params.retireAge);
+  let investText;
+  if (years > 0 && params.monthlyInvest > 0 && atRetire) {
+    investText = `毎月${fmtMoney(params.monthlyInvest)} × ${params.retireAge}歳までの${years}年で、積み立て総額は約${fmtMoney(contribTotal)}。元手と合わせて、退職時の投資資産は約${fmtMoney(atRetire.invested)}に育つ計算です。`;
+  } else if (years > 0) {
+    investText = 'いまは積み立てなしのプランです。スライダーで少し足すと、複利でどれくらい育つかをすぐ確かめられます。';
+  } else {
+    investText = '積み立て期間は終了し、育てた資産を使っていく時期のプランです。';
+  }
+
+  // お子さまの教育費: これからの見込み総額とピーク
+  const children = params.children ?? [];
+  let eduText;
+  if (children.length > 0) {
+    let eduTotal = 0;
+    for (const c of children) {
+      for (let a = Math.max(0, c.age); a <= 21; a++) eduTotal += educationCostAt(a);
+    }
+    if (eduTotal > 0) {
+      const peak = findEducationPeak(params);
+      eduText =
+        `お子さま${children.length}人の これからの教育費は、合計 約${fmtMoney(eduTotal)}の見込みです。` +
+        (peak ? `ピークは${peak.age}歳ごろ（年 約+${fmtMoney(peak.amount)}）。` : '') +
+        '差分方式なので二重計上はありません。';
+    } else {
+      eduText = 'お子さまはみんな独立後の想定です。教育費の見込みはもうありません。';
+    }
+  } else {
+    eduText = 'お子さまを追加すると、年齢だけで将来の教育費を自動で概算します（高校まで公立・大学は私立文系の目安）。';
+  }
+
   const cards = [
     {
       type: 'note money-note',
       leadImg: 'assets/coins.png',
       decorImg: 'assets/bear-book.png',
-      title: '毎月の投資は「お金の移動」です',
-      text: '毎月の投資額は、現在から目標に近づくこと。支出には含めませんので、ご安心ください。',
+      title: 'あなたの積み立て',
+      text: investText,
     },
     {
       type: 'note education-note',
       leadImg: 'assets/grad-cap.png',
       decorImg: 'assets/rabbit-note.png',
-      title: '教育費は「差分」だけを反映しています',
-      text: (params.children ?? []).length
-        ? '「お子さまの教育費」は、標準支出との差分だけを追加する仕組みで、二重計上を防いでいます。'
-        : 'お子さまを追加すると、標準支出との差分だけを将来のグラフに反映します。',
+      title: 'お子さまの教育費',
+      text: eduText,
     },
   ];
 
@@ -499,7 +531,7 @@ function update({ withReaction = false } = {}) {
   renderKpis(kpis, params);
   const advice = buildAdvice(params, mainSeries, kpis);
   const comments = buildComments(kpis, params);
-  const guidance = buildGuidanceCards(params, comments, advice);
+  const guidance = buildGuidanceCards(params, mainSeries, comments, advice);
   renderComments(guidance.cards, guidance.summary);
   renderDiagnosis(buildNarrativeReport(params, mainSeries, kpis, advice), advice.filter((a) => a.type === 'tip'));
   renderValidation(deriveValidation(params));

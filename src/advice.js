@@ -11,7 +11,7 @@ const lifeOf = (k, endAge) => (k.survivesToEnd ? endAge + 1 : (k.lifetimeAge ?? 
 const pick = (pool, seed) => pool[Math.min(pool.length - 1, Math.floor(seed * pool.length))];
 const SESSION_SEED = Math.random();
 
-function findEducationPeak(params) {
+export function findEducationPeak(params) {
   if ((params.children ?? []).length === 0) return null;
 
   let peakAge = null;
