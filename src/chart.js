@@ -69,8 +69,10 @@ export function renderChart(canvas, mainSeries, params, existingChart) {
       ctx.textAlign = 'center';
       ctx.fillStyle = '#c96079';
       const x = Math.min(Math.max(pt.x, chartArea.left + 60), chartArea.right - 60);
-      const y = Math.max(pt.y - 16, chartArea.top + 58);
-      if (JOY_IMG.complete && JOY_IMG.naturalWidth > 0) {
+      // スマホの小さいグラフではペア画像は線の邪魔になるので描かない（🎉テキストのみ）
+      const showPair = chart.width >= 520 && JOY_IMG.complete && JOY_IMG.naturalWidth > 0;
+      const y = Math.max(pt.y - 16, chartArea.top + (showPair ? 58 : 18));
+      if (showPair) {
         ctx.drawImage(JOY_IMG, x - 39, y - 60, 78, 44);
       }
       ctx.fillText('🎉 目標達成！', x, y);
@@ -117,6 +119,7 @@ export function renderChart(canvas, mainSeries, params, existingChart) {
     options: {
       animation: { duration: 200 },
       responsive:  true,
+      maintainAspectRatio: false, // 高さは .chart-box のCSSで確保（スマホで潰れないように）
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: {

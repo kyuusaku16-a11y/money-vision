@@ -654,3 +654,26 @@ header .char-img {
   /* 支出カードは縦積みに（3列は幅不足） */
   .expense-cards { grid-template-columns: 1fr; }
 }
+
+/* グラフの高さ確保（maintainAspectRatio:false とセット。グラフが主役） */
+.chart-box { position: relative; height: 420px; }
+@media (max-width: 720px) {
+  .chart-box { height: 330px; }
+}
+
+/* モバイル: カード右のキャラは本文を圧迫するため非表示（本文優先） */
+@media (max-width: 720px) {
+  .comment.note .comment-visual,
+  .summary-comment .comment-visual { display: none; }
+  .comment,
+  .summary-comment .comment { grid-template-columns: 44px minmax(0, 1fr); }
+  .comment.diagnosis { grid-template-columns: minmax(0, 1fr) 96px; }
+  .comment.diagnosis .comment-visual { width: 96px; height: 74px; }
+  .comment.diagnosis .comment-visual img { max-width: 90px; max-height: 70px; }
+}
+
+/* .comment.note の独自グリッド(60px/1fr/150px)を統一規格に合流させる */
+.comment.note { grid-template-columns: 56px minmax(0, 1fr) 120px; }
+@media (max-width: 720px) {
+  .comment.note { grid-template-columns: 44px minmax(0, 1fr); }
+}
