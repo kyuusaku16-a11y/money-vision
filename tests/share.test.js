@@ -1,61 +1,78 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { diagnoseType, buildShareText, HOUSEHOLD_TYPES } from '../src/share.js';
+import { deriveAxes, diagnoseType, buildShareText, ANIMALS, PERSONAS } from '../src/share.js';
 
 const base = {
   currentAge: 35, annualIncome: 5000000, annualExpense: 3000000,
-  monthlyInvest: 50000, endAge: 100, children: [],
+  monthlyInvest: 50000, expectedReturn: 5, targetAmount: 100000000,
+  endAge: 100, children: [], events: [], loanMonthly: 0,
 };
-const kpisOf = (over = {}) => ({ survivesToEnd: true, lifetimeAge: null, targetAge: 70, ...over });
+const kpis = { survivesToEnd: true, lifetimeAge: null, targetAge: 65 };
 
-test('diagnoseType: 収入0はどんな条件でも「はばたき小鳥型」', () => {
-  const t = diagnoseType(kpisOf(), { ...base, annualIncome: 0, children: [{ age: 5 }] });
-  assert.equal(t.id, 'bird');
+test('deriveAxes: 貯蓄率20%以上は「ためる」・未満は「まわす」', () => {
+  assert.equal(deriveAxes(kpis, base).flow, 'ためる'); // 40%
+  assert.equal(deriveAxes(kpis, { ...base, annualExpense: 4200000 }).flow, 'まわす'); // 16%
 });
 
-test('diagnoseType: 目標到達が15年以内なら「まっしぐらうさぎ型」', () => {
-  const t = diagnoseType(kpisOf({ targetAge: 48 }), base); // 13年
-  assert.equal(t.id, 'rabbit');
+test('deriveAxes: 余剰の半分以上を投資 or 利回り6%以上は「そだてる」', () => {
+  assert.equal(deriveAxes(kpis, { ...base, monthlyInvest: 100000 }).grow, 'そだてる'); // 60%投資
+  assert.equal(deriveAxes(kpis, { ...base, expectedReturn: 7 }).grow, 'そだてる');
+  assert.equal(deriveAxes(kpis, base).grow, 'まもる'); // 30%投資・5%
 });
 
-test('diagnoseType: 子ども登録ありは「家族でバンザイ型」', () => {
-  const t = diagnoseType(kpisOf({ targetAge: 70 }), { ...base, children: [{ age: 5 }] });
-  assert.equal(t.id, 'family');
+test('deriveAxes: 何か登録していれば「地図」・空なら「コンパス」', () => {
+  assert.equal(deriveAxes(kpis, base).plan, 'コンパス');
+  assert.equal(deriveAxes(kpis, { ...base, children: [{ age: 5 }] }).plan, '地図');
+  assert.equal(deriveAxes(kpis, { ...base, loanMonthly: 100000 }).plan, '地図');
 });
 
-test('diagnoseType: 余剰の半分以上を投資に回す高貯蓄率は「じっくり育てるくま型」', () => {
-  // 貯蓄率40%・余剰200万のうち投資120万（60%）
-  const t = diagnoseType(kpisOf({ targetAge: null }), { ...base, monthlyInvest: 100000 });
-  assert.equal(t.id, 'grower');
+test('deriveAxes: 目標が年収15倍以上は「大志」', () => {
+  assert.equal(deriveAxes(kpis, base).dream, '大志'); // 1億 = 年収20倍
+  assert.equal(deriveAxes(kpis, { ...base, targetAmount: 30000000 }).dream, '満ち足り');
 });
 
-test('diagnoseType: 上記に該当せず安心圏なら「どっしりくま型」', () => {
-  const t = diagnoseType(kpisOf({ targetAge: null }), { ...base, monthlyInvest: 10000, annualExpense: 4600000 });
-  assert.equal(t.id, 'steady');
+test('diagnoseType: 軸の組み合わせが正しい動物と性格になる', () => {
+  // ためる×まもる×コンパス×大志 = 冒険家ハムスター
+  const t = diagnoseType(kpis, base);
+  assert.equal(t.name, '冒険家ハムスター');
+  assert.deepEqual(t.tags, ['ためる', 'まもる', 'コンパス', '大志']);
+  // まわす×そだてる×地図×満ち足り = 庭師ミツバチ
+  const t2 = diagnoseType(kpis, {
+    ...base, annualExpense: 4200000, expectedReturn: 7,
+    children: [{ age: 5 }], targetAmount: 30000000,
+  });
+  assert.equal(t2.name, '庭師ミツバチ');
 });
 
-test('diagnoseType: どれでもなければ「これから芽ぐく型」（前向きな文言）', () => {
-  const t = diagnoseType(
-    { survivesToEnd: false, lifetimeAge: 78, targetAge: null },
-    { ...base, monthlyInvest: 0, annualExpense: 4800000 },
-  );
-  assert.equal(t.id, 'sprout');
-  assert.ok(t.lines.join('').includes('のびしろ'));
-});
-
-test('HOUSEHOLD_TYPES: 全タイプが名前・画像・前向きな2行コピーを持つ', () => {
-  for (const t of Object.values(HOUSEHOLD_TYPES)) {
-    assert.ok(t.name.endsWith('型'));
-    assert.ok(t.img.startsWith('assets/'));
-    assert.equal(t.lines.length, 2);
-    for (const ng of ['ダメ', '不足', '危険', '失敗']) {
-      assert.ok(!t.lines.join('').includes(ng), `${t.name} に責める言葉`);
+test('16タイプ全てに固有の名言があり、責める言葉を含まない', () => {
+  const seen = new Set();
+  for (const animal of Object.values(ANIMALS)) {
+    for (const persona of Object.values(PERSONAS)) {
+      const params = {
+        ...base,
+        annualExpense: animal.id === 'squirrel' || animal.id === 'hamster' ? 3000000 : 4200000,
+        expectedReturn: animal.id === 'squirrel' || animal.id === 'bee' ? 7 : 3,
+        monthlyInvest: 10000,
+        children: persona.id === 'strategist' || persona.id === 'gardener' ? [{ age: 5 }] : [],
+        targetAmount: persona.id === 'strategist' || persona.id === 'adventurer' ? 100000000 : 30000000,
+      };
+      const t = diagnoseType(kpis, params);
+      assert.equal(t.name, `${persona.label}${animal.label}`);
+      assert.ok(t.quote.length >= 15, `${t.name} の名言が短すぎ`);
+      assert.ok(!seen.has(t.quote), `${t.name} の名言が重複`);
+      seen.add(t.quote);
+      for (const ng of ['ダメ', '不足', '危険', '失敗', '浪費']) {
+        assert.ok(!t.quote.includes(ng), `${t.name} に責める語`);
+      }
     }
   }
+  assert.equal(seen.size, 16);
 });
 
-test('buildShareText: タイプ名入り・金額なし・ハッシュタグあり', () => {
-  const t = buildShareText(kpisOf(), base);
-  assert.ok(t.includes('型') && t.includes('#マネービジョン'));
-  assert.ok(!t.includes('万円') && !t.includes('億'));
+test('buildShareText: タイプ名・4タグ入り、金額なし', () => {
+  const t = buildShareText(kpis, base);
+  assert.ok(t.includes('冒険家ハムスター'));
+  assert.ok(t.includes('ためる') && t.includes('大志'));
+  assert.ok(!t.includes('万円') && !t.includes('億円'));
+  assert.ok(t.includes('#マネービジョン'));
 });
