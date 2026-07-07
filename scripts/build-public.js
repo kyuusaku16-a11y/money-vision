@@ -13,7 +13,7 @@ async function main() {
   await Promise.all([
     copyFile(join(root, 'index.html'), join(dist, 'index.html')),
     copyFile(join(root, 'styles.css'), join(dist, 'styles.css')),
-    copyFile(join(root, 'ogp.png'), join(dist, 'ogp.png')),
+    copyFile(join(root, 'og-card.jpg'), join(dist, 'og-card.jpg')),
     cp(join(root, 'src'), join(dist, 'src'), { recursive: true }),
     cp(join(root, 'assets'), join(dist, 'assets'), { recursive: true }),
   ]);
