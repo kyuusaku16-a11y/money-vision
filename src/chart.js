@@ -110,10 +110,14 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
           fill:                 'origin',
           backgroundColor: (ctx) => {
             const { chartArea, ctx: c } = ctx.chart;
-            if (!chartArea) return 'rgba(232, 160, 170, 0.12)';
+            // テーマ（ベリー/フォレスト）に追従する塗り色
+            const rgb =
+              getComputedStyle(document.documentElement).getPropertyValue('--chart-fill-rgb').trim() ||
+              '232, 160, 170';
+            if (!chartArea) return `rgba(${rgb}, 0.12)`;
             const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-            g.addColorStop(0, 'rgba(232, 160, 170, 0.30)');
-            g.addColorStop(1, 'rgba(232, 160, 170, 0.02)');
+            g.addColorStop(0, `rgba(${rgb}, 0.30)`);
+            g.addColorStop(1, `rgba(${rgb}, 0.02)`);
             return g;
           },
           pointRadius,

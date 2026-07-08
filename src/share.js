@@ -196,24 +196,31 @@ export function buildShareText(type) {
 
 const FONT = '"Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", sans-serif';
 
-function drawTag(ctx, text, cx, y) {
+// カードの配色（🍓ベリー / 🌲フォレスト — ピンクに抵抗がある人向けの選択肢）
+const PALETTES = {
+  berry: { bgA: '#fbe6e4', bgB: '#fdf3f1', border: '#f5c7d2', accent: '#c96079', tagBg: '#fdeef1', tagBorder: '#f0a3b4', sub: '#8a6f66', footer: '#a2887f' },
+  forest: { bgA: '#e7efe6', bgB: '#f3f8f1', border: '#c3d8c6', accent: '#45705f', tagBg: '#ebf3ec', tagBorder: '#9fc8b3', sub: '#6f8577', footer: '#8a9a8a' },
+};
+
+function drawTag(ctx, text, cx, y, pal) {
   ctx.font = `700 24px ${FONT}`;
   const w = ctx.measureText(text).width + 32;
-  ctx.fillStyle = '#fdeef1';
+  ctx.fillStyle = pal.tagBg;
   ctx.beginPath();
   ctx.roundRect(cx - w / 2, y - 24, w, 42, 21);
   ctx.fill();
-  ctx.strokeStyle = '#f0a3b4';
+  ctx.strokeStyle = pal.tagBorder;
   ctx.lineWidth = 2;
   ctx.stroke();
-  ctx.fillStyle = '#c96079';
+  ctx.fillStyle = pal.accent;
   ctx.textAlign = 'center';
   ctx.fillText(text, cx, y + 4);
   return w;
 }
 
 // 診断カード（1200×630）。イラスト到着までは絵文字が代役のテキストカード
-export async function renderShareCard(type) {
+export async function renderShareCard(type, palette = 'berry') {
+  const pal = PALETTES[palette] ?? PALETTES.berry;
   const W = 1200;
   const H = 630;
   const canvas = document.createElement('canvas');
@@ -223,8 +230,8 @@ export async function renderShareCard(type) {
   await document.fonts.ready;
 
   const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#fbe6e4');
-  bg.addColorStop(1, '#fdf3f1');
+  bg.addColorStop(0, pal.bgA);
+  bg.addColorStop(1, pal.bgB);
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
@@ -232,14 +239,14 @@ export async function renderShareCard(type) {
   ctx.beginPath();
   ctx.roundRect(56, 56, W - 112, H - 168, 32);
   ctx.fill();
-  ctx.strokeStyle = '#f5c7d2';
+  ctx.strokeStyle = pal.border;
   ctx.lineWidth = 3;
   ctx.stroke();
 
   const textCenterX = 430;
   ctx.textAlign = 'center';
 
-  ctx.fillStyle = '#c96079';
+  ctx.fillStyle = pal.accent;
   ctx.font = `700 36px ${FONT}`;
   ctx.fillText('ミラため性格診断', textCenterX, 140);
 
@@ -265,15 +272,15 @@ export async function renderShareCard(type) {
   const totalW = widths.reduce((a, b) => a + b, 0) + gaps * 3;
   let x = textCenterX - totalW / 2;
   for (let i = 0; i < type.tags.length; i++) {
-    drawTag(ctx, type.tags[i], x + widths[i] / 2, 352);
+    drawTag(ctx, type.tags[i], x + widths[i] / 2, 352, pal);
     x += widths[i] + gaps;
   }
 
-  ctx.fillStyle = '#8a6f66';
+  ctx.fillStyle = pal.sub;
   ctx.font = `500 28px ${FONT}`;
   ctx.fillText(type.hitokoto, textCenterX, 424);
 
-  ctx.fillStyle = '#c96079';
+  ctx.fillStyle = pal.accent;
   ctx.font = `700 30px ${FONT}`;
   ctx.fillText('あなたは16タイプのどれ？', textCenterX, 486);
 
@@ -284,7 +291,7 @@ export async function renderShareCard(type) {
   ctx.font = `500 20px ${FONT}`;
   ctx.fillText('（イラスト準備中）', 960, 410);
 
-  ctx.fillStyle = '#a2887f';
+  ctx.fillStyle = pal.footer;
   ctx.font = `500 28px ${FONT}`;
   ctx.fillText('ミラため — 未来のために、貯めて育てる', W / 2, H - 62);
   ctx.font = `500 24px ${FONT}`;

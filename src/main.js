@@ -845,6 +845,11 @@ function init() {
     $('diagnosisHero').hidden = true;
     openShareDialog();
   });
+  $('palBerry').addEventListener('click', () => paintShareCard('berry'));
+  $('palForest').addEventListener('click', () => paintShareCard('forest'));
+  $('themeBerry').addEventListener('click', () => setTheme('berry'));
+  $('themeForest').addEventListener('click', () => setTheme('forest'));
+  applyTheme(state.settings.themeId);
   $('shareDoBtn').addEventListener('click', doShare);
   $('shareSaveBtn').addEventListener('click', saveShareImage);
   $('shareCloseBtn').addEventListener('click', () => $('shareDialog').close());
@@ -957,6 +962,22 @@ function init() {
 
 // 感想・要望フォームのURL（用意できたらここに貼るだけでフッターに現れる）
 const FEEDBACK_URL = '';
+
+// きせかえ（🍓ベリー/🌲フォレスト）。配色はCSS変数、選択は settings.themeId に保存
+function applyTheme(id) {
+  const forest = id === 'forest';
+  document.documentElement.dataset.theme = forest ? 'forest' : '';
+  $('themeBerry').classList.toggle('active', !forest);
+  $('themeForest').classList.toggle('active', forest);
+}
+
+function setTheme(id) {
+  state.settings.themeId = id;
+  saveState(state);
+  applyTheme(id);
+  trackEvent(`theme-${id}`);
+  update(); // グラフの塗り色をテーマに追従させる
+}
 
 // 初回訪問のベール（結果を自分でめくる演出）
 let veiled = false;
@@ -1245,18 +1266,11 @@ async function openShareDialog() {
   const text = buildShareText(type);
   const url = 'https://kyuusaku16-a11y.github.io/miratame/';
 
-  const canvas = await renderShareCard(type);
-  const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
-  currentShare = {
-    blob,
-    file: new File([blob], 'miratame.png', { type: 'image/png' }),
-    text,
-    url,
-    code: type.code,
-  };
-  $('shareCardImg').src = canvas.toDataURL('image/png');
+  currentShare = { text, url, code: type.code, type };
   $('shareTsuyomi').textContent = type.tsuyomi;
   $('shareNobashi').textContent = type.nobashi;
+  // カードの色は現在のテーマに合わせて開く（ダイアログ内で切替可）
+  await paintShareCard(state.settings.themeId === 'forest' ? 'forest' : 'berry');
   $('shareDialog').showModal();
 }
 
@@ -1286,6 +1300,19 @@ async function doShare() {
     '_blank',
     'noopener',
   );
+}
+
+// カードを指定パレットで描き直し、シェア用blobも差し替える
+async function paintShareCard(palette) {
+  if (!currentShare?.type) return;
+  currentShare.palette = palette;
+  $('palBerry').classList.toggle('active', palette === 'berry');
+  $('palForest').classList.toggle('active', palette === 'forest');
+  const canvas = await renderShareCard(currentShare.type, palette);
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+  currentShare.blob = blob;
+  currentShare.file = new File([blob], 'miratame.png', { type: 'image/png' });
+  $('shareCardImg').src = canvas.toDataURL('image/png');
 }
 
 function saveShareImage() {
