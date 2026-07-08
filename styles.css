@@ -1094,3 +1094,8 @@ footer .footer-link { color: var(--color-primary-deep); }
   .chart-box { height: 390px; }
   .chart-wrap { padding: 12px 8px 14px; }
 }
+
+/* タイプ図鑑: PCは4×4のきれいな正方形配置に */
+@media (min-width: 941px) {
+  .type-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
