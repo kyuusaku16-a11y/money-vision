@@ -87,7 +87,7 @@
 
         <label>目標金額（万円）<input type="number" id="targetAmount" min="0" step="100" /></label>
         <div class="goal-presets" id="goalPresets"></div>
-        <p class="field-note">※ちかい目標を選ぶと、グラフが5年表示に切り替わります</p>
+        <p class="field-note">※ちかい目標を選ぶと、目標に合わせた5〜10年のグラフに切り替わります</p>
 
         <p id="validationMsg" class="validation" hidden aria-live="polite"></p>
 
@@ -205,7 +205,7 @@
           </div>
           <div class="view-toggle" role="group" aria-label="グラフの表示モード">
             <button id="modeLife" type="button">🌳 人生プラン</button>
-            <button id="modeNear" type="button">🌱 ちかい目標（5年）</button>
+            <button id="modeNear" type="button">🌱 ちかい目標</button>
           </div>
           <div class="chart-box"><canvas id="chart"></canvas></div>
           <button id="defaultsNote" class="defaults-note" type="button" hidden>年金は平均値で計算中（タップで変更）</button>
@@ -266,6 +266,13 @@
 
         <div class="summary-comment" id="summaryComment"></div>
 
+        <!-- きょうのよみもの: 日替わりでコラムを1本だけ（一覧はページ下部とcolumns/へ） -->
+        <a class="daily-reading" id="dailyReading" href="columns/" hidden>
+          <span class="dr-label">📖 きょうのよみもの</span>
+          <strong class="dr-title" id="dailyReadingTitle"></strong>
+          <span class="dr-desc" id="dailyReadingDesc"></span>
+        </a>
+
       </section>
 
       <!-- 診断とよみものはPCでも全幅 -->
@@ -307,7 +314,8 @@
       <p>アクセス数の把握のため、Cookieを使わない匿名のアクセス解析（GoatCounter）を利用しています。</p>
       <p>
         <a class="footer-link" href="guide.html">使い方と計算の仕組み・よくある質問</a>／
-        <a class="footer-link" href="types.html">ミラため性格診断 全16タイプ図鑑</a>
+        <a class="footer-link" href="types.html">ミラため性格診断 全16タイプ図鑑</a>／
+        <a class="footer-link" href="columns/">お金のよみもの一覧</a>
       </p>
       <p class="theme-row">
         きせかえ:

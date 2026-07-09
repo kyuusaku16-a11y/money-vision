@@ -154,3 +154,11 @@ export function monthsToTarget(series, targetAmount) {
   }
   return null;
 }
+
+// 「ちかい目標」モードのグラフ表示年数。5年で届くなら5年のまま、
+// 届かないなら到達年+1年まで自動で広げる（上限10年。未到達でも10年は見せる）
+export function nearWindowYears(goalMonths) {
+  if (goalMonths === null) return 10;
+  const reachYears = Math.ceil(goalMonths / 12);
+  return Math.min(10, Math.max(5, reachYears + 1));
+}

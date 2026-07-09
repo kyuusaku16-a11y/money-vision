@@ -52,15 +52,23 @@
     </footer>
 
     <script type="module">
-      import { allTypes } from './src/share.js';
+      import { allTypes, typeImagePath } from './src/share.js';
       import { DESCRIPTIONS } from './src/descriptions.js';
       const grid = document.getElementById('typeGrid');
       for (const t of allTypes()) {
         const card = document.createElement('div');
         card.className = 'type-card';
-        const emoji = document.createElement('span');
-        emoji.className = 'type-emoji';
-        emoji.textContent = t.emoji;
+        const emoji = document.createElement('img');
+        emoji.className = 'type-img';
+        emoji.src = typeImagePath(t.code);
+        emoji.alt = t.name;
+        emoji.loading = 'lazy';
+        emoji.addEventListener('error', () => {
+          const fallback = document.createElement('span');
+          fallback.className = 'type-emoji';
+          fallback.textContent = t.emoji;
+          emoji.replaceWith(fallback);
+        });
         const code = document.createElement('span');
         code.className = 'type-code';
         code.textContent = t.code.split('').join('-');

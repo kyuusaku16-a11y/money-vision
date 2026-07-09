@@ -196,6 +196,18 @@ export function buildShareText(type) {
 
 const FONT = '"Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", sans-serif';
 
+// タイプ別イラスト（512px透過PNG）。図鑑・診断カード共通
+export const typeImagePath = (code) => `assets/types/${code}.png`;
+
+function loadImage(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
 // カードの配色（🍓ベリー / 🌲フォレスト — ピンクに抵抗がある人向けの選択肢）
 const PALETTES = {
   berry: { bgA: '#fbe6e4', bgB: '#fdf3f1', border: '#f5c7d2', accent: '#c96079', tagBg: '#fdeef1', tagBorder: '#f0a3b4', sub: '#8a6f66', footer: '#a2887f' },
@@ -218,7 +230,7 @@ function drawTag(ctx, text, cx, y, pal) {
   return w;
 }
 
-// 診断カード（1200×630）。イラスト到着までは絵文字が代役のテキストカード
+// 診断カード（1200×630）。右側にタイプのイラスト（読めなければ絵文字が代役）
 export async function renderShareCard(type, palette = 'berry') {
   const pal = PALETTES[palette] ?? PALETTES.berry;
   const W = 1200;
@@ -284,12 +296,14 @@ export async function renderShareCard(type, palette = 'berry') {
   ctx.font = `700 30px ${FONT}`;
   ctx.fillText('あなたは16タイプのどれ？', textCenterX, 486);
 
-  // 右側: 絵文字の代役キャラ（イラスト制作中）
-  ctx.font = '190px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
-  ctx.fillText(type.emoji, 960, 330);
-  ctx.fillStyle = '#b9a49b';
-  ctx.font = `500 20px ${FONT}`;
-  ctx.fillText('（イラスト準備中）', 960, 410);
+  // 右側: タイプのイラスト
+  try {
+    const img = await loadImage(typeImagePath(type.code));
+    ctx.drawImage(img, 770, 100, 390, 390);
+  } catch {
+    ctx.font = '190px "Apple Color Emoji", "Segoe UI Emoji", sans-serif';
+    ctx.fillText(type.emoji, 960, 330);
+  }
 
   ctx.fillStyle = pal.footer;
   ctx.font = `500 28px ${FONT}`;
