@@ -31,37 +31,149 @@
     ></script>
   </head>
   <body>
-    <header>
-      <img class="header-flower header-flower-left" src="assets/flower.png" alt="" aria-hidden="true" />
-      <div class="brand">
-        <img class="char-img" src="assets/pair-sit.png" alt="" aria-hidden="true" />
-        <div class="brand-text">
-          <h1>ミラため</h1>
-          <p class="tagline">未来のために、貯めて育てる</p>
-          <button id="jumpFormBtn" class="header-jump" type="button"><span class="dg-ico">✏️ </span>数字を入力する</button>
-        </div>
-        <button id="shareBtn" class="header-diagnose" type="button"><span class="dg-ico">🌰 </span><span class="dg-full">ミラため性格診断</span><span class="dg-short">性格診断</span></button>
-        <img class="header-flower header-flower-mid" src="assets/flowers.png" alt="" aria-hidden="true" />
-      </div>
-      <div class="greeting" aria-hidden="true">
-        <span class="greeting-bubble">一緒に未来の<br />安心を育てていこうね♪</span>
-        <img class="greeting-bird" src="assets/bird-blue.png" alt="" />
-        <img class="greeting-bird pink" src="assets/bird-pink.png" alt="" />
-      </div>
-      <img class="header-flower header-flower-right" src="assets/flower.png" alt="" aria-hidden="true" />
+    <!-- UIアイコン（線の太さ・角丸を統一した自前SVG。絵文字はUIに使わない） -->
+    <svg xmlns="http://www.w3.org/2000/svg" style="display: none" aria-hidden="true">
+      <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20l1.2-4.2L16.4 4.6a2 2 0 0 1 2.8 0l.2.2a2 2 0 0 1 0 2.8L8.2 18.8 4 20z"/><path d="M14.5 6.5l3 3"/></symbol>
+      <symbol id="i-sprout" viewBox="0 0 24 24"><path d="M12 21v-8"/><path d="M12 13c0-3.5 2.5-6 6-6 0 3.5-2.5 6-6 6z"/><path d="M12 15c0-2.8-2-4.8-4.8-4.8 0 2.8 2 4.8 4.8 4.8z"/></symbol>
+      <symbol id="i-tree" viewBox="0 0 24 24"><path d="M12 3l5 6.5h-2.7L19 15H5l4.7-5.5H7L12 3z"/><path d="M12 15v6"/></symbol>
+      <symbol id="i-acorn" viewBox="0 0 24 24"><path d="M7.5 10c0-2.5 2-4.5 4.5-4.5s4.5 2 4.5 4.5"/><path d="M6.5 10h11c0 1.2-1 2.2-2.2 2.2H8.7c-1.2 0-2.2-1-2.2-2.2z"/><path d="M8.7 12.2c.3 3.4 1.6 5.5 3.3 6.3 1.7-.8 3-2.9 3.3-6.3"/><path d="M12 5.5V4"/></symbol>
+      <symbol id="i-flower" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.4"/><path d="M12 9.6V5.5M12 14.4v4.1M9.6 12H5.5M14.4 12h4.1M10.2 10.2L7.4 7.4M13.8 13.8l2.8 2.8M13.8 10.2l2.8-2.8M10.2 13.8l-2.8 2.8"/></symbol>
+      <symbol id="i-note" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="16" rx="2"/><path d="M9 4v16"/><path d="M12.5 9.5H16M12.5 13h3.5"/></symbol>
+      <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 4v10"/><path d="M8 10l4 4 4-4"/><path d="M5 19h14"/></symbol>
+      <symbol id="i-up" viewBox="0 0 24 24"><path d="M12 14V4"/><path d="M8 8l4-4 4 4"/><path d="M5 19h14"/></symbol>
+      <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 6c-1.8-1.4-4.2-2-7-2v14c2.8 0 5.2.6 7 2 1.8-1.4 4.2-2 7-2V4c-2.8 0-5.2.6-7 2z"/><path d="M12 6v14"/></symbol>
+      <symbol id="i-share" viewBox="0 0 24 24"><circle cx="6" cy="12" r="2.2"/><circle cx="17" cy="6" r="2.2"/><circle cx="17" cy="18" r="2.2"/><path d="M8 11l7-4M8 13l7 4"/></symbol>
+      <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4.5L6 20V5a1 1 0 0 1 1-1z"/></symbol>
+      <symbol id="i-mail" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M4 8l8 6 8-6"/></symbol>
+      <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/></symbol>
+    </svg>
+    <header class="topbar">
+      <a class="tb-brand" href="./">
+        <img src="assets/piyo-good.png" alt="" aria-hidden="true" />
+        <span class="tb-name"><strong>ミラため</strong><small>未来のために、貯めて育てる</small></span>
+      </a>
+      <nav class="tb-nav" aria-label="メニュー">
+        <button id="jumpFormBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg>入力</button>
+        <a href="#track"><svg class="ico" aria-hidden="true"><use href="#i-flower"/></svg>きろく帳</a>
+        <a href="#reading"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg>よみもの</a>
+        <a href="types.html" class="nav-zukan"><svg class="ico" aria-hidden="true"><use href="#i-tree"/></svg>図鑑</a>
+      </nav>
+      <button id="shareBtn" class="tb-cta" type="button"><svg class="ico" aria-hidden="true"><use href="#i-acorn"/></svg><span class="dg-full">性格診断</span><span class="dg-short">診断</span></button>
     </header>
 
     <main>
       <!-- 初回訪問だけ表示する診断への入口（シェア経由の来訪者の受け皿） -->
       <div class="diagnosis-hero" id="diagnosisHero" hidden>
-        <img class="dh-img" src="assets/rabbit-thumbs.png" alt="" aria-hidden="true" />
+        <img class="dh-img" src="assets/piyo-happy.png" alt="" aria-hidden="true" />
         <div class="dh-text">
           <strong>30秒でわかる「ミラため性格診断」</strong>
           <span>あなたは16タイプのどれ？ いま入れた数字からわかるよ</span>
         </div>
-        <button id="heroDiagnoseBtn" type="button">🌰 診断してみる</button>
+        <button id="heroDiagnoseBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-acorn"/></svg>診断してみる</button>
       </div>
 
+      <section class="results">
+
+        <dialog id="recordDialog" class="share-dialog record-dialog">
+          <h3 class="record-title">今月の資産チェック</h3>
+          <div id="recordFormZone">
+            <label class="record-label">いまの資産（万円）
+              <input type="number" id="recordAsset" min="0" step="10" />
+            </label>
+            <p class="field-note" id="recordPrevNote"></p>
+            <div class="share-dialog-actions">
+              <button id="recordDoBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-note"/></svg>きろくする</button>
+              <button id="recordCancelBtn" type="button" class="ghost">とじる</button>
+            </div>
+          </div>
+          <div id="recordResultZone" hidden>
+            <img class="record-char" id="recordChar" src="assets/piyo-yatta.png" alt="" aria-hidden="true" />
+            <p class="record-result" id="recordResultText"></p>
+            <p class="record-trend" id="recordTrend" hidden></p>
+            <div class="share-dialog-actions">
+              <button id="recordDoneBtn" type="button">とじる</button>
+            </div>
+          </div>
+        </dialog>
+
+        <dialog id="shareDialog" class="share-dialog">
+          <img id="shareCardImg" alt="ミラため性格診断の結果カード" />
+          <div class="share-pal" role="group" aria-label="カードの色">
+            <span>カードの色</span>
+            <button id="palBerry" type="button"><span class="swatch berry" aria-hidden="true"></span>ベリー</button>
+            <button id="palForest" type="button"><span class="swatch forest" aria-hidden="true"></span>フォレスト</button>
+          </div>
+          <div class="share-details">
+            <p><strong>つよみ</strong><span id="shareTsuyomi"></span></p>
+            <p><strong>のばしどころ</strong><span id="shareNobashi"></span></p>
+          </div>
+          <div class="share-desc" id="shareDesc" hidden>
+            <details class="type-more" id="shareDescMore">
+              <summary>くわしく見る</summary>
+            </details>
+          </div>
+          <p class="share-dialog-note">
+            いま入力されている数字をもとに診断しています。入力を変えると結果も変わります ／
+            <a href="types.html">全16タイプを見る</a>
+          </p>
+          <div class="share-dialog-actions">
+            <button id="shareDoBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-share"/></svg>シェアする</button>
+            <button id="shareSaveBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-down"/></svg>画像を保存</button>
+            <button id="shareCloseBtn" type="button" class="ghost">とじる</button>
+          </div>
+        </dialog>
+
+        <!-- コックピット: 答え・KPI・グラフをひとつの操縦席カードに -->
+        <div class="panel cockpit chart-wrap">
+          <!-- 初回訪問だけのベール: 結果を「自分でめくる」ごほうびにする -->
+          <div class="chart-veil" id="chartVeil" hidden>
+            <img src="assets/piyo-wave.png" alt="" aria-hidden="true" />
+            <p class="veil-title">30秒で、あなたの<br />資産寿命が見える</p>
+            <p class="veil-sub">年齢・資産・収入・支出を入れるだけ。いまのペースで何歳まで安心か、未来のグラフでわかります</p>
+            <div class="veil-trust" aria-hidden="false"><span>登録不要</span><span>データは端末内のみ</span><span>無料</span></div>
+            <button id="veilJumpBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg>シミュレーションをはじめる</button>
+            <button id="veilRevealBtn" type="button" hidden><svg class="ico" aria-hidden="true"><use href="#i-sprout"/></svg>結果を見る</button>
+            <button id="veilSampleBtn" type="button" class="veil-sample">とりあえずサンプルで見てみる</button>
+          </div>
+          <div class="cockpit-side">
+            <!-- 問いから入る（みらい電卓方式）: モード切替＝知りたいことの選択 -->
+            <div class="view-toggle" role="group" aria-label="知りたいことを選ぶ">
+              <button id="modeLife" type="button">何歳まで安心？</button>
+              <button id="modeNear" type="button">目標にいつ届く？</button>
+            </div>
+            <div class="answer-hero">
+              <span class="answer-icon" aria-hidden="true"><img src="assets/piyo-good.png" alt="" /></span>
+              <div class="answer-text">
+                <span class="answer-label" id="kpi-lifetime-label">資産寿命</span>
+                <span class="answer-value kpi-value" id="kpi-lifetime">-</span>
+              </div>
+            </div>
+            <div class="kpis">
+              <div class="kpi"><span class="kpi-icon icon-green" aria-hidden="true"><img src="assets/coins.png" alt="" /></span><span class="kpi-label">現在の資産</span><span class="kpi-value" id="kpi-current">-</span></div>
+              <div class="kpi"><span class="kpi-icon icon-blue" aria-hidden="true"><img src="assets/sprout.png" alt="" /></span><span class="kpi-label" id="kpi-final-label">100歳時点の資産</span><span class="kpi-value" id="kpi-final">-</span></div>
+              <div class="kpi"><span class="kpi-icon icon-orange" aria-hidden="true"><svg class="ico"><use href="#i-target"/></svg></span><span class="kpi-label" id="kpi-target-label">目標到達まで</span><span class="kpi-value" id="kpi-target">-</span></div>
+            </div>
+          </div>
+          <div class="cockpit-main">
+            <div class="chart-box"><canvas id="chart"></canvas></div>
+            <button id="defaultsNote" class="defaults-note" type="button" hidden>年金は平均値で計算中（タップで変更）</button>
+            <div class="scenario-row">
+              <button id="saveScenarioBtn" type="button" class="scenario-save"><svg class="ico" aria-hidden="true"><use href="#i-bookmark"/></svg>いまのプランを保存してくらべる</button>
+              <div id="scenarioList" class="scenario-list"></div>
+              <p id="scenarioMsg" class="field-note" hidden aria-live="polite"></p>
+            </div>
+          </div>
+        </div>
+
+        <p class="trust-note">登録不要・入力データは端末内のみ・投資助言ではありません</p>
+
+        <div id="reaction" class="reaction" hidden aria-live="polite"><img class="reaction-img" id="reactionImg" src="assets/bird-pink.png" alt="" aria-hidden="true" /><span id="reactionText"></span></div>
+        <div class="summary-comment" id="summaryComment"></div>
+
+      </section>
+
+      <!-- 操作盤と見通しの2カラム。stickyフォームの可動範囲はこのラッパー内に閉じる -->
+      <div class="dash">
       <section class="panel form">
         <h2>あなたの数字</h2>
 
@@ -81,10 +193,6 @@
         <label>年間支出・現役（万円）<input type="number" id="annualExpense" min="0" step="10" /></label>
         <input type="range" id="annualExpenseSlider" min="1000000" max="8000000" step="100000" aria-label="年間支出" />
 
-        <label>想定利回り（％）<input type="number" id="expectedReturn" min="0" max="20" step="0.5" /></label>
-        <p class="field-note">目安：弱気なら2%・ふつうは5%・強気なら8%</p>
-        <p class="field-note">※インフレ分を引いたあとの利回りです</p>
-
         <label>目標金額（万円）<input type="number" id="targetAmount" min="0" step="100" /></label>
         <div class="goal-presets" id="goalPresets"></div>
         <p class="field-note">※ちかい目標を選ぶと、目標に合わせた5〜10年のグラフに切り替わります</p>
@@ -93,6 +201,9 @@
 
         <details id="advanced">
           <summary>詳しく設定<span id="advancedSummary" class="summary-note"></span></summary>
+          <h3>運用のこと</h3>
+          <label>想定利回り（％）<input type="number" id="expectedReturn" min="0" max="20" step="0.5" /></label>
+          <p class="field-note">目安：弱気2%・ふつう5%・強気8%（インフレ分を引いたあとの利回り）</p>
           <h3>老後のこと</h3>
           <label>退職年齢・積立終了（歳）<input type="number" id="retireAge" min="50" max="75" /></label>
           <input type="range" id="retireAgeSlider" min="50" max="75" step="1" aria-label="退職年齢" />
@@ -127,160 +238,76 @@
           <h3>データの引っ越し・バックアップ</h3>
           <p class="field-note">機種変更やブラウザの引っ越しに。ファイルは端末内で作られ、どこにも送信されません</p>
           <div class="backup-row">
-            <button id="exportBtn" class="add-event" type="button">📤 設定を書き出す</button>
-            <button id="importBtn" class="add-event" type="button">📥 設定を読み込む</button>
+            <button id="exportBtn" class="add-event" type="button"><svg class="ico" aria-hidden="true"><use href="#i-up"/></svg>設定を書き出す</button>
+            <button id="importBtn" class="add-event" type="button"><svg class="ico" aria-hidden="true"><use href="#i-down"/></svg>設定を読み込む</button>
           </div>
           <input type="file" id="importFile" accept=".json,application/json" hidden />
           <p id="backupMsg" class="field-note" hidden aria-live="polite"></p>
         </details>
       </section>
 
-      <section class="results">
-        <div class="kpis">
-          <div class="kpi"><span class="kpi-icon icon-green" aria-hidden="true"><img src="assets/coins.png" alt="" /></span><div class="kpi-text"><span class="kpi-label">現在の資産</span><span class="kpi-value" id="kpi-current">-</span></div></div>
-          <div class="kpi"><span class="kpi-icon icon-blue" aria-hidden="true"><img src="assets/sprout.png" alt="" /></span><div class="kpi-text"><span class="kpi-label" id="kpi-final-label">100歳時点の資産</span><span class="kpi-value" id="kpi-final">-</span></div></div>
-          <div class="kpi"><span class="kpi-icon icon-orange" aria-hidden="true"><img src="assets/rabbit-banzai.png" alt="" /></span><div class="kpi-text"><span class="kpi-label" id="kpi-target-label">目標到達まで</span><span class="kpi-value" id="kpi-target">-</span></div></div>
-          <div class="kpi hero"><span class="kpi-icon icon-yellow" aria-hidden="true"><img src="assets/rabbit-thumbs.png" alt="" /></span><div class="kpi-text"><span class="kpi-label" id="kpi-lifetime-label">資産寿命</span><span class="kpi-value" id="kpi-lifetime">-</span></div></div>
-        </div>
-
-
-        <dialog id="recordDialog" class="share-dialog record-dialog">
-          <h3 class="record-title">📒 今月の資産チェック</h3>
-          <div id="recordFormZone">
-            <label class="record-label">いまの資産（万円）
-              <input type="number" id="recordAsset" min="0" step="10" />
-            </label>
-            <p class="field-note" id="recordPrevNote"></p>
-            <div class="share-dialog-actions">
-              <button id="recordDoBtn" type="button">📒 きろくする</button>
-              <button id="recordCancelBtn" type="button" class="ghost">とじる</button>
-            </div>
-          </div>
-          <div id="recordResultZone" hidden>
-            <img class="record-char" id="recordChar" src="assets/rabbit-joy.png" alt="" aria-hidden="true" />
-            <p class="record-result" id="recordResultText"></p>
-            <p class="record-trend" id="recordTrend" hidden></p>
-            <div class="share-dialog-actions">
-              <button id="recordDoneBtn" type="button">とじる</button>
-            </div>
-          </div>
-        </dialog>
-
-        <dialog id="shareDialog" class="share-dialog">
-          <img id="shareCardImg" alt="ミラため性格診断の結果カード" />
-          <div class="share-pal" role="group" aria-label="カードの色">
-            <span>カードの色</span>
-            <button id="palBerry" type="button">🍓 ベリー</button>
-            <button id="palForest" type="button">🌲 フォレスト</button>
-          </div>
-          <div class="share-details">
-            <p><strong>💪 つよみ</strong><span id="shareTsuyomi"></span></p>
-            <p><strong>🌱 のばしどころ</strong><span id="shareNobashi"></span></p>
-          </div>
-          <div class="share-desc" id="shareDesc" hidden>
-            <details class="type-more" id="shareDescMore">
-              <summary>くわしく見る</summary>
-            </details>
-          </div>
-          <p class="share-dialog-note">
-            いま入力されている数字をもとに診断しています。入力を変えると結果も変わります ／
-            <a href="types.html">全16タイプを見る</a>
-          </p>
-          <div class="share-dialog-actions">
-            <button id="shareDoBtn" type="button">📤 シェアする</button>
-            <button id="shareSaveBtn" type="button">💾 画像を保存</button>
-            <button id="shareCloseBtn" type="button" class="ghost">とじる</button>
-          </div>
-        </dialog>
-
-        <div class="panel chart-wrap">
-          <!-- 初回訪問だけのベール: 結果を「自分でめくる」ごほうびにする -->
-          <div class="chart-veil" id="chartVeil" hidden>
-            <img src="assets/pair-peek.png" alt="" aria-hidden="true" />
-            <p class="veil-title">あなたの資産は、<br />何歳までもつ？</p>
-            <p class="veil-sub">「あなたの数字」を入れると、ここに未来のグラフが現れます</p>
-            <button id="veilJumpBtn" type="button">✏️ 数字を入力する</button>
-            <button id="veilRevealBtn" type="button" hidden>🌱 結果を見る</button>
-            <button id="veilSampleBtn" type="button" class="veil-sample">とりあえずサンプルで見てみる</button>
-          </div>
-          <div class="view-toggle" role="group" aria-label="グラフの表示モード">
-            <button id="modeLife" type="button">🌳 人生プラン</button>
-            <button id="modeNear" type="button">🌱 ちかい目標</button>
-          </div>
-          <div class="chart-box"><canvas id="chart"></canvas></div>
-          <button id="defaultsNote" class="defaults-note" type="button" hidden>年金は平均値で計算中（タップで変更）</button>
-          <div class="scenario-row">
-            <button id="saveScenarioBtn" type="button" class="scenario-save">💾 いまのプランを保存してくらべる</button>
-            <div id="scenarioList" class="scenario-list"></div>
-            <p id="scenarioMsg" class="field-note" hidden aria-live="polite"></p>
-          </div>
-        </div>
-
-      </section>
-
       <!-- グラフより下・PCでは右カラムに続く（スマホでは入力フォームの後ろ） -->
       <section class="results-mid">
-        <div class="panel track" id="track">
-          <div class="track-head">
-            <img src="assets/rabbit-book.png" alt="" aria-hidden="true" />
-            <h2>きろく帳</h2>
-          </div>
-
-          <div class="track-body">
-            <div class="track-col">
-              <div class="stamps-head">
-                <span class="stamps-title">🌸 まいにちのスタンプ</span>
-                <span class="stamps-count" id="stampCount"></span>
-              </div>
-              <div class="stamps-row" id="stampsRow" aria-hidden="true"></div>
-              <button id="stampBtn" type="button">🌸 今日のスタンプを押す</button>
-              <p class="stamp-quote" id="stampQuote" hidden></p>
-            </div>
-            <div class="track-col track-monthly">
-              <div class="stamps-head">
-                <span class="stamps-title">📒 まいつきの資産チェック</span>
-              </div>
-              <p class="track-status" id="trackStatus"></p>
-              <div class="track-actions">
-                <button id="recordBtn" type="button">📒 今月の資産をチェック</button>
-              </div>
-              <p class="field-note">月に1回、いまの資産をきろくするだけ。ふえたか減ったか、毎月教えます（数字は端末内のみ）</p>
-            </div>
-          </div>
-          <p class="field-note pwa-hint" id="pwaHint" hidden>
-            💡 このページを「ホーム画面に追加」しておくと、毎月1タップで開けます
-            <button id="pwaHintClose" type="button" aria-label="閉じる">×</button>
-          </p>
-        </div>
-
+        <h2 class="zone-label">これからの見通し</h2>
         <div class="below-chart">
           <div class="panel schedule" id="schedule" hidden>
-            <h2 id="scheduleToggle"><img class="schedule-icon" src="assets/rabbit-note.png" alt="" aria-hidden="true" />これからの大きな支出<span class="chev" aria-hidden="true"></span></h2>
+            <h2 id="scheduleToggle">これからの大きな支出<span class="chev" aria-hidden="true"></span></h2>
             <div id="scheduleList"></div>
           </div>
-
           <div class="panel comments" id="comments"></div>
         </div>
 
-        <div id="reaction" class="reaction" hidden aria-live="polite"><img class="reaction-img" id="reactionImg" src="assets/bird-pink.png" alt="" aria-hidden="true" /><span id="reactionText"></span></div>
-
-        <div class="summary-comment" id="summaryComment"></div>
-
         <!-- きょうのよみもの: 日替わりでコラムを1本だけ（一覧はページ下部とcolumns/へ） -->
         <a class="daily-reading" id="dailyReading" href="columns/" hidden>
-          <span class="dr-label">📖 きょうのよみもの</span>
+          <span class="dr-label"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg>きょうのよみもの</span>
           <strong class="dr-title" id="dailyReadingTitle"></strong>
           <span class="dr-desc" id="dailyReadingDesc"></span>
         </a>
 
+        <h2 class="zone-label">まいにちのきろく</h2>
+        <div class="panel track" id="track">
+          <div class="track-head">
+            <h2>きろく帳</h2>
+          </div>
+
+          <div class="track-body">
+            <div class="track-col track-monthly">
+              <div class="stamps-head">
+                <span class="stamps-title">まいつきの資産チェック</span>
+              </div>
+              <p class="track-status" id="trackStatus"></p>
+              <div class="track-actions">
+                <button id="recordBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-note"/></svg>今月の資産をチェック</button>
+              </div>
+              <p class="field-note">月に1回、いまの資産をきろくするだけ。ふえたか減ったか、毎月教えます（数字は端末内のみ）</p>
+            </div>
+            <div class="track-col">
+              <div class="stamps-head">
+                <span class="stamps-title">まいにちのスタンプ</span>
+                <span class="stamps-count" id="stampCount"></span>
+              </div>
+              <div class="stamps-row" id="stampsRow" aria-hidden="true"></div>
+              <button id="stampBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-flower"/></svg>今日のスタンプを押す</button>
+              <p class="stamp-quote" id="stampQuote" hidden></p>
+            </div>
+          </div>
+          <p class="field-note pwa-hint" id="pwaHint" hidden>
+            このページを「ホーム画面に追加」しておくと、毎月1タップで開けます
+            <button id="pwaHintClose" type="button" aria-label="閉じる">×</button>
+          </p>
+        </div>
+
       </section>
+
+      </div>
 
       <!-- 診断とよみものはPCでも全幅 -->
       <section class="results-more">
+        <h2 class="zone-label">くわしい診断とよみもの</h2>
         <div class="diagnosis-area" id="diagnosis"></div>
 
         <div class="panel reading" id="reading">
-          <h2>📖 よみもの・お知らせ</h2>
+          <h2><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg>よみもの・お知らせ</h2>
           <ul class="reading-list" id="readingList">
             <li><a href="columns/hajimete-100man.html">はじめての100万円の作り方 — 貯金ゼロからの現実的な道のり</a></li>
             <li><a href="columns/tedori-tsukaikata.html">手取り20万円、どう分ける？ 世界一シンプルな家計のルール</a></li>
@@ -297,21 +324,25 @@
 
     <!-- スマホ用: 入力中も資産寿命が見える固定バー（タップでグラフへ） -->
     <button id="lifetimeBar" class="lifetime-bar" type="button" hidden aria-label="資産寿命。タップでグラフへ移動">
-      <img src="assets/rabbit-thumbs.png" alt="" aria-hidden="true" />
+      <img src="assets/piyo-good.png" alt="" aria-hidden="true" />
       <span class="lb-label" id="lifetimeBarLabel">資産寿命</span>
       <span class="lb-value" id="lifetimeBarValue">-</span>
     </button>
 
     <div class="page-chars" aria-hidden="true">
       <img class="pc-flower" src="assets/flower.png" alt="" />
-      <img src="assets/pair-sit.png" alt="" />
+      <img src="assets/piyo-watering.png" alt="" />
       <img class="pc-flower" src="assets/flowers.png" alt="" />
     </div>
 
     <footer>
-      <p>ミラためは簡易シミュレーションです。投資助言ではなく、将来の成果を保証するものでもありません。</p>
-      <p>入力データはこの端末のブラウザ内にのみ保存され、入力内容が外部へ送信されることはありません。</p>
-      <p>アクセス数の把握のため、Cookieを使わない匿名のアクセス解析（GoatCounter）を利用しています。</p>
+      <p>ミラためは簡易シミュレーションです（投資助言ではありません）。入力データは端末内にのみ保存されます。</p>
+      <details class="footer-more">
+        <summary>くわしい注意事項</summary>
+        <p>ミラためは簡易シミュレーションです。投資助言ではなく、将来の成果を保証するものでもありません。</p>
+        <p>入力データはこの端末のブラウザ内にのみ保存され、入力内容が外部へ送信されることはありません。</p>
+        <p>アクセス数の把握のため、Cookieを使わない匿名のアクセス解析（GoatCounter）を利用しています。</p>
+      </details>
       <p>
         <a class="footer-link" href="guide.html">使い方と計算の仕組み・よくある質問</a>／
         <a class="footer-link" href="types.html">ミラため性格診断 全16タイプ図鑑</a>／
@@ -319,10 +350,10 @@
       </p>
       <p class="theme-row">
         きせかえ:
-        <button id="themeBerry" class="theme-btn" type="button">🍓 ベリー</button>
-        <button id="themeForest" class="theme-btn" type="button">🌲 フォレスト</button>
+        <button id="themeBerry" class="theme-btn" type="button"><span class="swatch berry" aria-hidden="true"></span>ベリー</button>
+        <button id="themeForest" class="theme-btn" type="button"><span class="swatch forest" aria-hidden="true"></span>フォレスト</button>
       </p>
-      <p id="feedbackRow" hidden><a class="footer-link" id="feedbackLink" href="" target="_blank" rel="noopener">💌 感想・こんな機能がほしい（匿名でOK）</a></p>
+      <p id="feedbackRow" hidden><a class="footer-link" id="feedbackLink" href="" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>感想・こんな機能がほしい（匿名でOK）</a></p>
     </footer>
 
     <script type="module" src="src/main.js"></script>

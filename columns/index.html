@@ -22,19 +22,32 @@
     <link rel="stylesheet" href="../styles.css" />
   </head>
   <body class="guide">
-    <header>
-      <div class="brand">
-        <img class="char-img" src="../assets/pair-sit.png" alt="" aria-hidden="true" />
-        <div class="brand-text">
-          <h1>よみもの</h1>
-          <p class="tagline">将来のお金と、落ち着いて付き合うために</p>
-        </div>
-      </div>
+    <script>
+      // きせかえ（フォレスト）を選んだ人は、読みものページでも同じ配色に
+      try {
+        if (JSON.parse(localStorage.getItem('money-vision-state'))?.settings?.themeId === 'forest')
+          document.documentElement.dataset.theme = 'forest';
+      } catch {}
+    </script>
+
+    <header class="topbar">
+      <a class="tb-brand" href="../">
+        <img src="../assets/piyo-good.png" alt="" aria-hidden="true" />
+        <span class="tb-name"><strong>ミラため</strong><small>未来のために、貯めて育てる</small></span>
+      </a>
+      <nav class="tb-nav" aria-label="メニュー">
+        <a href="../">ホーム</a>
+        <a href="index.html" >よみもの</a>
+        <a href="../types.html" class="nav-zukan">図鑑</a>
+        <a href="../guide.html">使い方</a>
+      </nav>
+      <a class="tb-cta" href="../?diagnose=1"><span class="dg-full">性格診断</span><span class="dg-short">診断</span></a>
     </header>
 
     <main class="guide-main">
       <article class="panel guide-body">
-        <p><a class="guide-back" href="../">← シミュレーターにもどる</a></p>
+        <h1 class="page-title">よみもの</h1>
+        <p class="page-lede">将来のお金と、落ち着いて付き合うためのコラム集です。</p>
 
         <div class="column-list">
           <a class="column-item" href="hajimete-100man.html">

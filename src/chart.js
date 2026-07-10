@@ -19,7 +19,7 @@ const CHART_COLORS = {
 
 // 目標達成バッジの喜ぶ2人（読み込み完了後の再描画から表示される）
 const JOY_IMG = new Image();
-JOY_IMG.src = 'assets/pair-joy.png';
+JOY_IMG.src = 'assets/piyo-happy.png';
 
 /**
  * Format a yen value as 万 / 億 label (no trailing "円").
@@ -87,9 +87,10 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
       const x = Math.min(Math.max(pt.x, chartArea.left + 60), chartArea.right - 60);
       // スマホの小さいグラフではペア画像は線の邪魔になるので描かない（🎉テキストのみ）
       const showPair = chart.width >= 520 && JOY_IMG.complete && JOY_IMG.naturalWidth > 0;
-      const y = Math.max(pt.y - 16, chartArea.top + (showPair ? 58 : 18));
+      const y = Math.max(pt.y - 16, chartArea.top + (showPair ? 54 : 18));
       if (showPair) {
-        ctx.drawImage(JOY_IMG, x - 39, y - 60, 78, 44);
+        // ぴよため（正方形）は控えめに: グラフは信頼感が主役の場所
+        ctx.drawImage(JOY_IMG, x - 20, y - 54, 40, 40);
       }
       ctx.fillText('🎉 目標達成！', x, y);
       ctx.restore();

@@ -53,6 +53,8 @@ let prevKpis = null;
 let reactionTimer = null;
 
 const $ = (id) => document.getElementById(id);
+// index.html冒頭のSVGスプライトを参照する（固定IDのみ・ユーザー入力は通さない）
+const icoUse = (id) => `<svg class="ico" aria-hidden="true"><use href="#${id}"/></svg>`;
 const fieldOf = (id) => FIELDS.find((f) => f.id === id);
 const sectionOf = (s, f) => (f.section === 'inputs' ? s.inputs : s.advanced);
 
@@ -247,6 +249,8 @@ function renderComments(cards, summary) {
   const summaryBox = $('summaryComment');
   summaryBox.innerHTML = '';
   if (summary) summaryBox.appendChild(makeCommentCard(summary));
+  // 初回ベール中は「答えはめくってのお楽しみ」— 総評も見せない
+  summaryBox.hidden = veiled;
 }
 
 function buildGuidanceCards(params, series, comments, advice) {
@@ -288,14 +292,14 @@ function buildGuidanceCards(params, series, comments, advice) {
     {
       type: 'note money-note',
       leadImg: 'assets/coins.png',
-      decorImg: 'assets/bear-book.png',
+      decorImg: 'assets/piyo-note.png',
       title: 'あなたの積み立て',
       text: investText,
     },
     {
       type: 'note education-note',
       leadImg: 'assets/grad-cap.png',
-      decorImg: 'assets/rabbit-note.png',
+      decorImg: 'assets/piyo-idea.png',
       title: 'お子さまの教育費',
       text: eduText,
     },
@@ -305,7 +309,7 @@ function buildGuidanceCards(params, series, comments, advice) {
   const cheer = comments.find((c) => c.type === 'cheer');
   const summaryText = result?.text ?? cheer?.text;
   const summary = summaryText
-    ? { type: 'summary', leadImg: 'assets/bulb.png', decorImg: 'assets/pair-sit.png', title: result?.title, text: summaryText, actions: result?.actions }
+    ? { type: 'summary', leadImg: 'assets/bulb.png', decorImg: 'assets/piyo-happy.png', title: result?.title, text: summaryText, actions: result?.actions }
     : null;
 
   return { cards, summary };
@@ -459,8 +463,12 @@ function renderDiagnosis(report, tips) {
   const box = $('diagnosis');
   box.innerHTML = '';
   // 診断カードの挿絵は「芽に水をやるくま」＝資産を育てる世界観
-  box.appendChild(makeCommentCard({ ...report, decorImg: 'assets/bear-watering.png' }));
-  for (const t of tips) box.appendChild(makeCommentCard({ ...t, noDecor: true }));
+  box.appendChild(makeCommentCard({ ...report, decorImg: 'assets/piyo-watering.png' }));
+  for (const t of tips) {
+    // 診断本文に同じ文を借りているヒントは、二重表示になるのでカード側を出さない
+    if (report.lines.includes(t.text)) continue;
+    box.appendChild(makeCommentCard({ ...t, noDecor: true }));
+  }
 }
 
 // --- 子どもの教育費 ---
@@ -626,8 +634,8 @@ function renderReaction(reaction, duration = 4000) {
     box.hidden = true;
     return;
   }
-  // 改善は喜びうさぎ、ゆっくりペースはくまが寄り添う（img指定があればそちら優先）
-  $('reactionImg').src = reaction.img ?? (reaction.type === 'improved' ? 'assets/rabbit-joy.png' : 'assets/bear.png');
+  // 改善はバンザイ、ゆっくりペースはサムズアップのぴよためが寄り添う（img指定があればそちら優先）
+  $('reactionImg').src = reaction.img ?? (reaction.type === 'improved' ? 'assets/piyo-yatta.png' : 'assets/piyo-good.png');
   $('reactionText').textContent = reaction.text;
   box.hidden = false;
   reactionTimer = setTimeout(() => {
@@ -916,7 +924,7 @@ function init() {
   for (const u of UPDATES.slice(0, 3)) {
     const li = document.createElement('li');
     const [, m, d] = u.date.split('-');
-    li.textContent = `🆕 ${Number(m)}/${Number(d)} ${u.text}`;
+    li.textContent = `${Number(m)}/${Number(d)} ${u.text}`;
     $('updatesList').appendChild(li);
   }
   for (const a of NOTE_ARTICLES) {
@@ -1059,10 +1067,10 @@ function trackEvent(name) {
 
 // ちかい目標モード（若い層向け）: プリセット＋目標連動の5〜10年スケール表示
 const GOAL_PRESETS = [
-  { id: 'first100', label: '🌰 はじめの100万', man: 100 },
-  { id: 'hitori', label: '🏠 一人暮らし資金', man: 50 },
-  { id: 'tabi', label: '✈️ 旅・留学', man: 80 },
-  { id: 'kekkon', label: '💍 結婚・将来資金', man: 300 },
+  { id: 'first100', label: 'はじめの100万', man: 100 },
+  { id: 'hitori', label: '一人暮らし資金', man: 50 },
+  { id: 'tabi', label: '旅・留学', man: 80 },
+  { id: 'kekkon', label: '結婚・将来資金', man: 300 },
 ];
 
 function syncModeButtons() {
@@ -1116,7 +1124,7 @@ function renderStamps({ justAdded = false } = {}) {
   const stampedToday = days.includes(now.getDate());
   const btn = $('stampBtn');
   btn.disabled = stampedToday;
-  btn.textContent = stampedToday ? '✅ 今日のスタンプは押したよ' : '🌸 今日のスタンプを押す';
+  btn.innerHTML = icoUse('i-flower') + (stampedToday ? '今日のスタンプは押したよ' : '今日のスタンプを押す');
 }
 
 function pressStamp() {
@@ -1144,12 +1152,12 @@ function renderTrack() {
     let text = streak >= 2 ? `✅ 今月はチェックずみ（${streak}ヶ月連続🌱）` : '✅ 今月はチェックずみ';
     if (delta) text += ` — ${delta.text}`;
     status.textContent = text;
-    $('recordBtn').textContent = '📒 記録を見る・直す';
+    $('recordBtn').innerHTML = icoUse('i-note') + '記録を見る・直す';
   } else {
     status.textContent = latestRecordBefore(hist, ymNow)
       ? 'まだ今月のチェックがないよ。1分で終わります'
       : '月に1回きろくすると、「ふえた・減った」が見えるようになるよ';
-    $('recordBtn').textContent = '📒 今月の資産をチェック';
+    $('recordBtn').innerHTML = icoUse('i-note') + '今月の資産をチェック';
   }
 }
 
@@ -1197,7 +1205,7 @@ function doRecord() {
   const cur = hist.find((s) => s.ym === ymNow);
   const delta = buildRecordDelta(prev, cur);
   const streak = recordStreak(hist, ymNow);
-  $('recordChar').src = delta?.type === 'gentle' ? 'assets/bear.png' : 'assets/rabbit-joy.png';
+  $('recordChar').src = delta?.type === 'gentle' ? 'assets/piyo-good.png' : 'assets/piyo-yatta.png';
   const lines = [delta ? delta.text : 'きろくしたよ！来月もいっしょに見よう🌱'];
   if (streak >= 2) lines.push(`${streak}ヶ月連続でチェック中🌱`);
   const stampCount = stampsThisMonth().length;

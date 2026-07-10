@@ -41,7 +41,7 @@ export function stampToday(storage = globalThis.localStorage, d = new Date()) {
 }
 
 // スタンプの絵柄は日付で決まる（うさぎ・くま・小鳥のローテーション）
-const STAMP_CHARS = ['assets/rabbit.png', 'assets/bear.png', 'assets/bird-pink.png'];
+const STAMP_CHARS = ['assets/piyo-good.png', 'assets/piyo-happy.png', 'assets/piyo-yatta.png'];
 
 export function stampCharFor(day) {
   return STAMP_CHARS[day % STAMP_CHARS.length];
