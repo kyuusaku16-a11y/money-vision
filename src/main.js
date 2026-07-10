@@ -6,7 +6,7 @@ import { fmtMoney, manToYen, yenToMan } from './format.js';
 import { deriveValidation } from './validation.js';
 import { buildReaction } from './reactions.js';
 import { buildSchedule } from './schedule.js';
-import { judgeType, buildShareText, renderShareCard } from './share.js';
+import { judgeType, buildShareText, renderShareCard, buildAxisDetails, nearestEvolution } from './share.js';
 import { buildAdvice, buildNarrativeReport, findEducationPeak } from './advice.js';
 import {
   loadHistory,
@@ -1290,6 +1290,61 @@ function importStateFile(file) {
   reader.readAsText(file);
 }
 
+// あなたの4軸: メーター（実数と境目）＋いちばん近い進化の条件。
+// おすすめではなく攻略情報の口調（投資助言をしない原則）。カード画像には含めない
+function renderAxisMeters(params) {
+  const details = buildAxisDetails(params);
+  const list = $('shareAxesList');
+  list.textContent = '';
+  for (const a of details) {
+    const row = document.createElement('div');
+    row.className = 'axis-row';
+    const head = document.createElement('div');
+    head.className = 'axis-head';
+    const label = document.createElement('span');
+    label.className = 'axis-label';
+    label.textContent = a.label;
+    const side = document.createElement('span');
+    side.className = 'axis-side';
+    side.textContent = a.sideLabel;
+    head.append(label, side);
+    row.appendChild(head);
+    if (a.missing) {
+      const note = document.createElement('p');
+      note.className = 'axis-note';
+      note.textContent = a.missing;
+      row.appendChild(note);
+    } else {
+      const gauge = document.createElement('div');
+      gauge.className = 'axis-gauge';
+      const fill = document.createElement('div');
+      fill.className = 'axis-fill';
+      fill.style.width = `${Math.round(a.ratio * 100)}%`;
+      const mark = document.createElement('span');
+      mark.className = 'axis-mark';
+      gauge.append(fill, mark);
+      const note = document.createElement('p');
+      note.className = 'axis-note';
+      note.textContent = `${a.valueText}（${a.thresholdText}）`;
+      row.append(gauge, note);
+    }
+    list.appendChild(row);
+  }
+  const evoEl = $('shareEvo');
+  const evo = nearestEvolution(details);
+  const complete = details.every((a) => !a.missing && ['C', 'G', 'S', 'F'].includes(a.side));
+  if (evo) {
+    evoEl.textContent = `🧬 いちばん近い進化: ${evo.text}`;
+    evoEl.hidden = false;
+  } else if (complete) {
+    evoEl.textContent = '🌟 4つの軸がぜんぶそろった、進化の完成形！';
+    evoEl.hidden = false;
+  } else {
+    evoEl.hidden = true;
+  }
+  $('shareAxes').hidden = false;
+}
+
 // 診断→ポップアップで結果カードを見せる→そこからシェア/保存
 let currentShare = null; // { blob, file, text, url }
 
@@ -1319,6 +1374,7 @@ async function openShareDialog() {
   currentShare = { text, url, code: type.code, type };
   $('shareTsuyomi').textContent = type.tsuyomi;
   $('shareNobashi').textContent = type.nobashi;
+  renderAxisMeters(paramsOf(state));
   // 詳細説明文（v3ロング版）は診断を開いたときだけ読み込む（初期ロードを増やさない）
   try {
     const { DESCRIPTIONS } = await import('./descriptions.js');

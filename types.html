@@ -66,10 +66,12 @@
     <script type="module">
       import { allTypes, typeImagePath } from './src/share.js';
       import { DESCRIPTIONS } from './src/descriptions.js';
+      import { EXTRAS } from './src/extras.js';
       const grid = document.getElementById('typeGrid');
       for (const t of allTypes()) {
         const card = document.createElement('div');
         card.className = 'type-card';
+        card.id = t.code; // types.html#CGSF のような直リンク用
         const emoji = document.createElement('img');
         emoji.className = 'type-img';
         emoji.src = typeImagePath(t.code);
@@ -104,6 +106,40 @@
             const para = document.createElement('p');
             para.textContent = p;
             more.appendChild(para);
+          }
+          const extra = EXTRAS[t.code];
+          if (extra) {
+            const h = (text) => {
+              const el = document.createElement('strong');
+              el.className = 'type-extra-h';
+              el.textContent = text;
+              return el;
+            };
+            more.appendChild(h('こんなところ、ありませんか'));
+            const ul = document.createElement('ul');
+            ul.className = 'type-aruaru';
+            for (const a of extra.aruaru) {
+              const li = document.createElement('li');
+              li.textContent = a;
+              ul.appendChild(li);
+            }
+            more.appendChild(ul);
+            more.appendChild(h('気をつけたい落とし穴'));
+            const oto = document.createElement('p');
+            oto.textContent = extra.otoshiana;
+            more.appendChild(oto);
+            more.appendChild(h('このタイプに効くよみもの'));
+            const links = document.createElement('ul');
+            links.className = 'type-yomimono';
+            for (const y of extra.yomimono) {
+              const li = document.createElement('li');
+              const a = document.createElement('a');
+              a.href = y.href;
+              a.textContent = y.title;
+              li.appendChild(a);
+              links.appendChild(li);
+            }
+            more.appendChild(links);
           }
           card.append(more);
         }
