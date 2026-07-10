@@ -17,10 +17,20 @@ import {
   recordStreak,
   latestRecordBefore,
   buildRecordDelta,
+  buildYearReview,
+  importHistory,
   monthOf,
 } from './history.js';
 import { seasonalMessage } from './seasonal.js';
-import { stampsThisMonth, stampToday, stampCharFor, milestoneMessage, dailyQuote } from './stamps.js';
+import {
+  stampsThisMonth,
+  stampToday,
+  stampCharFor,
+  milestoneMessage,
+  dailyQuote,
+  loadStamps,
+  importStamps,
+} from './stamps.js';
 import { UPDATES, NOTE_ARTICLES, COLUMNS } from './updates.js';
 
 // フォーム定義。id は state のキー名と一致。unit は UI⇄state の変換則
@@ -1207,6 +1217,9 @@ function doRecord() {
   const streak = recordStreak(hist, ymNow);
   $('recordChar').src = delta?.type === 'gentle' ? 'assets/piyo-good.png' : 'assets/piyo-yatta.png';
   const lines = [delta ? delta.text : 'きろくしたよ！来月もいっしょに見よう🌱'];
+  // 答え合わせ: 約1年前に記録した「計画上の1年後資産」があれば実績と見くらべる
+  const yearReview = buildYearReview(hist, ymNow);
+  if (yearReview) lines.push(yearReview.text);
   if (streak >= 2) lines.push(`${streak}ヶ月連続でチェック中🌱`);
   const stampCount = stampsThisMonth().length;
   if (stampCount >= 5) lines.push(`今月は${stampCount}回も会えたね🌸`);
@@ -1239,7 +1252,9 @@ function showBackupMsg(text) {
 
 function exportState() {
   trackEvent('backup-export');
-  const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+  // v2形式: 入力設定に加えて、資産チェック履歴とスタンプも一緒に引っ越しできるように
+  const payload = { app: 'miratame', version: 2, state, history: loadHistory(), stamps: loadStamps() };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = 'ミラため設定.json';
@@ -1253,13 +1268,19 @@ function importStateFile(file) {
   reader.onload = () => {
     try {
       const p = JSON.parse(reader.result);
-      if (!p || typeof p !== 'object' || !p.inputs) throw new Error('not a backup');
-      state = normalizeState(p);
+      // v2形式（state+履歴+スタンプ）と旧形式（stateのみ）の両対応
+      const st = p?.state?.inputs ? p.state : p;
+      if (!st || typeof st !== 'object' || !st.inputs) throw new Error('not a backup');
+      state = normalizeState(st);
       saveState(state);
+      if (p.history) importHistory(p.history);
+      if (p.stamps) importStamps(p.stamps);
       writeForm();
       renderEvents();
       renderChildren();
       update();
+      renderTrack();
+      renderStamps();
       trackEvent('backup-import');
       showBackupMsg('読み込みました！グラフに反映されています');
     } catch {

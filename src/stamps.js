@@ -40,6 +40,24 @@ export function stampToday(storage = globalThis.localStorage, d = new Date()) {
   return { added: true, days: next, count: next.length };
 }
 
+// データ引っ越しの読み込み用。YYYY-MM キー＋1〜31の整数配列だけ採用して保存する
+export function importStamps(obj, storage = globalThis.localStorage) {
+  if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return loadStamps(storage);
+  const clean = {};
+  for (const [ym, days] of Object.entries(obj)) {
+    if (!/^\d{4}-\d{2}$/.test(ym) || !Array.isArray(days)) continue;
+    clean[ym] = [...new Set(days.filter((d) => Number.isInteger(d) && d >= 1 && d <= 31))].sort((a, b) => a - b);
+  }
+  const keep = Object.keys(clean).sort().slice(-KEEP_MONTHS);
+  const trimmed = Object.fromEntries(keep.map((k) => [k, clean[k]]));
+  try {
+    storage?.setItem(KEY, JSON.stringify(trimmed));
+  } catch {
+    /* localStorage 使用不可でも無視 */
+  }
+  return trimmed;
+}
+
 // スタンプの絵柄は日付で決まる（うさぎ・くま・小鳥のローテーション）
 const STAMP_CHARS = ['assets/piyo-good.png', 'assets/piyo-yatta.png', 'assets/piyo-memo.png', 'assets/piyo-wave2.png'];
 

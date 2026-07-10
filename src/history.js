@@ -90,6 +90,45 @@ export function buildRecordDelta(prev, curr) {
   return { type: 'gentle', text: `前回（${prevMonth}）より −${-diffMan}万円。使う月もあるさ、だいじょうぶ` };
 }
 
+// 約1年前（11〜13ヶ月前・12ヶ月を最優先）に立てた計画と今月の実績の答え合わせ。
+// ±5%以内は「計画どおり」を褒める。下回っても事実+見直しの誘いだけ（§1 責めない）
+export function buildYearReview(history, ym = monthOf()) {
+  const cur = history.find((s) => s.ym === ym && s.recordedAsset != null);
+  if (!cur) return null;
+  const now = ymToNum(ym);
+  const base = history
+    .filter((s) => s.projected1y != null)
+    .map((s) => ({ s, age: now - ymToNum(s.ym) }))
+    .filter(({ age }) => age >= 11 && age <= 13)
+    .sort((a, b) => Math.abs(a.age - 12) - Math.abs(b.age - 12) || b.age - a.age)[0];
+  if (!base) return null;
+  const plan = base.s.projected1y;
+  const actual = cur.recordedAsset;
+  const planMan = Math.round(plan / 10000);
+  const actualMan = Math.round(actual / 10000);
+  const onPlan = plan > 0 ? Math.abs(actual - plan) / plan <= 0.05 : actual === 0;
+  if (onPlan) {
+    return { type: 'improved', text: '去年立てた計画どおりに進んでるよ。これ、いちばんすごいことかも' };
+  }
+  if (actual > plan) {
+    return {
+      type: 'improved',
+      text: `去年の計画では${planMan}万円の予定だったけど、実際は${actualMan}万円。計画より上をいってるよ🌱`,
+    };
+  }
+  return {
+    type: 'gentle',
+    text: `去年の計画は${planMan}万円、実際は${actualMan}万円。予定どおりにいかない年もあるさ。計画を見直すチャンスだよ`,
+  };
+}
+
+// データ引っ越しの読み込み用。ymが YYYY-MM のエントリだけ採用して保存する
+export function importHistory(arr, storage = globalThis.localStorage) {
+  if (!Array.isArray(arr)) return loadHistory(storage);
+  const ok = arr.filter((s) => s && typeof s === 'object' && /^\d{4}-\d{2}$/.test(s.ym));
+  return saveHistory(ok, storage);
+}
+
 // 今月分を除いた、いちばん新しい記録
 export function previousSnapshot(history, ym = monthOf()) {
   const prior = history.filter((s) => s.ym < ym);
