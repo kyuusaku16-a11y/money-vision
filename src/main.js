@@ -6,7 +6,7 @@ import { fmtMoney, manToYen, yenToMan } from './format.js';
 import { deriveValidation } from './validation.js';
 import { buildReaction } from './reactions.js';
 import { buildSchedule } from './schedule.js';
-import { judgeType, buildShareText, renderShareCard, buildAxisDetails, nearestEvolution } from './share.js';
+import { judgeType, buildShareText, renderShareCard, buildAxisDetails } from './share.js';
 import { buildAdvice, buildNarrativeReport, findEducationPeak } from './advice.js';
 import {
   loadHistory,
@@ -1304,8 +1304,8 @@ function importStateFile(file) {
   reader.readAsText(file);
 }
 
-// あなたの4軸: メーター（実数と境目）＋いちばん近い進化の条件。
-// おすすめではなく攻略情報の口調（投資助言をしない原則）。カード画像には含めない
+// あなたの4軸: メーター（実数と境目）。数字の見える化のみで、
+// 「こうすれば別タイプ」の類いは出さない。カード画像には含めない
 function renderAxisMeters(params) {
   const details = buildAxisDetails(params);
   const list = $('shareAxesList');
@@ -1343,18 +1343,6 @@ function renderAxisMeters(params) {
       row.append(gauge, note);
     }
     list.appendChild(row);
-  }
-  const evoEl = $('shareEvo');
-  const evo = nearestEvolution(details);
-  const complete = details.every((a) => !a.missing && ['C', 'G', 'S', 'F'].includes(a.side));
-  if (evo) {
-    evoEl.textContent = `🧬 いちばん近い進化: ${evo.text}`;
-    evoEl.hidden = false;
-  } else if (complete) {
-    evoEl.textContent = '🌟 4つの軸がぜんぶそろった、進化の完成形！';
-    evoEl.hidden = false;
-  } else {
-    evoEl.hidden = true;
   }
   $('shareAxes').hidden = false;
 }

@@ -180,18 +180,8 @@ export function judgeType(params = {}) {
   };
 }
 
-// 変化量の表示: 月々の額は円/万円、まとまった額は万円（切り上げ=確実に届く額を言う）
-const fmtMonthlyGap = (yen) => {
-  if (yen >= 10000) {
-    const man = Math.ceil(yen / 1000) / 10;
-    return `${man % 1 === 0 ? man.toFixed(0) : man.toFixed(1)}万円`;
-  }
-  return `${(Math.ceil(yen / 100) * 100).toLocaleString()}円`;
-};
-const fmtStockGap = (yen) => `${Math.ceil(yen / 10000).toLocaleString()}万円`;
-
-// 「あなたの4軸」メーター。judgeTypeと同じ材料から、各軸の実数・境目・
-// タイプが変わる条件（進化の条件）を返す。おすすめではなく攻略情報の口調（§投資助言なし）
+// 「あなたの4軸」メーター。judgeTypeと同じ材料から、各軸の実数と境目を返す
+//（数字の見える化のみ。「こうすれば別タイプ」の類いは出さない — ユーザー判断で不採用）
 export function buildAxisDetails(params = {}) {
   const monthlyIncome = num(params.annualIncome) / 12;
   const monthlyExpense = num(params.annualExpense) / 12;
@@ -218,10 +208,6 @@ export function buildAxisDetails(params = {}) {
       valueText: `貯蓄率 ${Math.round(rate * 100)}%`,
       thresholdText: `コツコツの境目は ${Math.round(t * 100)}%`,
       ratio: clamp01(rate / (t * 2)),
-      flipInfo:
-        monthlyIncome > 0 && side === 'Y'
-          ? { gap: (t - rate) / t, need: `毎月の残り（収入−支出）があと${fmtMonthlyGap(t * monthlyIncome - surplus)}ふえると` }
-          : null,
     });
   }
 
@@ -239,10 +225,6 @@ export function buildAxisDetails(params = {}) {
       valueText: `育てる資産の割合 ${Math.round(ratio * 100)}%`,
       thresholdText: `そだてるの境目は ${Math.round(t * 100)}%`,
       ratio: clamp01(ratio / (t * 2)),
-      flipInfo:
-        total > 0 && side === 'M'
-          ? { gap: (t - ratio) / t, need: `育てる資産があと${fmtStockGap(t * total - invested)}ふえると` }
-          : null,
     });
   }
 
@@ -260,10 +242,6 @@ export function buildAxisDetails(params = {}) {
       valueText: `生活費 ${(Math.round(months * 10) / 10).toFixed(1)}ヶ月分`,
       thresholdText: `しっかり備えの境目は ${t}ヶ月`,
       ratio: clamp01(months / (t * 2)),
-      flipInfo:
-        monthlyExpense > 0 && side === 'L'
-          ? { gap: (t - months) / t, need: `現金の備えがあと${fmtStockGap(t * monthlyExpense - cash)}ふえると` }
-          : null,
     });
   }
 
@@ -273,14 +251,10 @@ export function buildAxisDetails(params = {}) {
     const strength = surplus > 0 ? monthlyInvest / surplus : 0;
     const side = surplus > 0 ? (strength >= t ? 'F' : 'N') : monthlyInvest > 0 ? 'F' : 'N';
     let valueText = `余剰のうち積立 ${Math.round(strength * 100)}%`;
-    let flipInfo = null;
     if (monthlyIncome <= 0) {
       valueText = `余剰のうち積立 -%`;
-    } else if (surplus > 0 && side === 'N') {
-      flipInfo = { gap: (t - strength) / t, need: `毎月の積立があと${fmtMonthlyGap(t * surplus - monthlyInvest)}ふえると` };
     } else if (surplus <= 0 && side === 'N') {
       valueText = 'いまは余剰なし';
-      flipInfo = { gap: 1, need: '毎月の積立を始めると' };
     } else if (surplus <= 0 && side === 'F') {
       valueText = '赤字でも先どり中';
     }
@@ -293,31 +267,10 @@ export function buildAxisDetails(params = {}) {
       valueText,
       thresholdText: `先どりの境目は ${Math.round(t * 100)}%`,
       ratio: clamp01(strength / (t * 2)),
-      flipInfo: monthlyIncome > 0 ? flipInfo : null,
     });
   }
 
-  // 進化の条件: 1文字だけ変わったコードとタイプ名を付ける
-  const THRESHOLD_SIDE = ['C', 'G', 'S', 'F'];
-  const code = axes.map((a) => a.side).join('');
-  return axes.map((a, i) => {
-    if (!a.flipInfo) return { ...a, flip: null, flipInfo: undefined };
-    const newCode = code.slice(0, i) + THRESHOLD_SIDE[i] + code.slice(i + 1);
-    const name = TYPES[newCode]?.name ?? '';
-    return {
-      ...a,
-      flipInfo: undefined,
-      flip: { code: newCode, name, gap: a.flipInfo.gap, text: `${a.flipInfo.need}「${name}」に進化` },
-    };
-  });
-}
-
-// 境目にいちばん近い軸をひとつ（全軸そろっていたら null=完成形）
-export function nearestEvolution(details) {
-  const candidates = details.filter((a) => a.flip).sort((x, y) => x.flip.gap - y.flip.gap);
-  if (!candidates.length) return null;
-  const a = candidates[0];
-  return { axisLabel: a.label, ...a.flip };
+  return axes;
 }
 
 // 図鑑用: 16タイプすべて（仕様書の並び順）
