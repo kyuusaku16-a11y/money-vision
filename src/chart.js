@@ -19,7 +19,7 @@ const CHART_COLORS = {
 
 // 目標達成バッジの喜ぶ2人（読み込み完了後の再描画から表示される）
 const JOY_IMG = new Image();
-JOY_IMG.src = 'assets/piyo-happy.png';
+JOY_IMG.src = 'assets/piyo-jump.png';
 
 /**
  * Format a yen value as 万 / 億 label (no trailing "円").

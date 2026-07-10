@@ -463,7 +463,7 @@ function renderDiagnosis(report, tips) {
   const box = $('diagnosis');
   box.innerHTML = '';
   // 診断カードの挿絵は「芽に水をやるくま」＝資産を育てる世界観
-  box.appendChild(makeCommentCard({ ...report, decorImg: 'assets/piyo-watering.png' }));
+  box.appendChild(makeCommentCard({ ...report, decorImg: 'assets/piyo-search.png' }));
   for (const t of tips) {
     // 診断本文に同じ文を借りているヒントは、二重表示になるのでカード側を出さない
     if (report.lines.includes(t.text)) continue;
@@ -635,7 +635,7 @@ function renderReaction(reaction, duration = 4000) {
     return;
   }
   // 改善はバンザイ、ゆっくりペースはサムズアップのぴよためが寄り添う（img指定があればそちら優先）
-  $('reactionImg').src = reaction.img ?? (reaction.type === 'improved' ? 'assets/piyo-yatta.png' : 'assets/piyo-good.png');
+  $('reactionImg').src = reaction.img ?? (reaction.type === 'improved' ? 'assets/piyo-yatta.png' : 'assets/piyo-rest.png');
   $('reactionText').textContent = reaction.text;
   box.hidden = false;
   reactionTimer = setTimeout(() => {
