@@ -22,6 +22,10 @@ export const UPDATES = [
 // noteの記事を公開したら {title, url} を足すと「よみもの」に並ぶ
 export const NOTE_ARTICLES = [
   {
+    title: '手取り20万円の分け方、noteでくわしく書きました',
+    url: 'https://note.com/piyo_tame/n/nac02925a1a32',
+  },
+  {
     title: '貯金が続かないのは、意志が弱いからじゃない',
     url: 'https://note.com/piyo_tame/n/n10aa7586c30a',
   },
