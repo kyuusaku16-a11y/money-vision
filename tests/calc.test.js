@@ -111,6 +111,22 @@ test('deriveKpis: finalAssets は最終年齢スナップショットの資産',
   assert.equal(k.currentAssets, s[0].assets);
 });
 
+test('deriveKpis: 一度尽きて年金で復活しても、資産寿命は最初に尽きる年齢', () => {
+  // 55歳で枯渇 → 65歳から年金で復活 → 100歳まで持つ、という形
+  const series = [
+    { age: 50, assets: 3000000 },
+    { age: 54, assets: 500000 },
+    { age: 55, assets: 0 },
+    { age: 60, assets: 0 },
+    { age: 65, assets: 1000000 },
+    { age: 100, assets: 5000000 },
+  ];
+  const k = deriveKpis(series, { targetAmount: 99999999, currentAge: 50 });
+  assert.equal(k.survivesToEnd, false); // 後ろがプラスでも安心圏にしない
+  assert.equal(k.lifetimeAge, 54); // 最初に尽きる直前の年齢
+  assert.equal(k.recoversAfterDepletion, true);
+});
+
 test('deriveKpis: 資産が一度も正でないなら survivesToEnd=false, lifetimeAge=null', () => {
   // 現在の資産0・投資0・毎月投資0・収入=支出 → 全年齢で資産0
   const inputs = { ...base, currentAge: 40, retireAge: 41, totalAsset: 0, investedAsset: 0, monthlyInvest: 0, annualIncome: 3000000, annualExpense: 3000000, pensionAnnual: 0, retiredExpenseRatio: 0, endAge: 60 };

@@ -32,8 +32,47 @@ const SESSION_SEED = Math.random();
 export function buildComments(kpis, params, seed = SESSION_SEED) {
   const comments = [];
 
+  // 資産が途中で尽きるプランでは、先に資産寿命の注意を置く
+  // （総評＝先頭コメントなので、目標到達の褒め言葉が総評にならないように）
+  if (!kpis.survivesToEnd && kpis.lifetimeAge !== null) {
+    const recovery = kpis.recoversAfterDepletion
+      ? `年金が入ると後半は持ち直す形ですが、その手前の数年が課題です。`
+      : '';
+    if (kpis.lifetimeAge < (params.retireAge ?? 65)) {
+      // 退職前に尽きる = はっきり（でも責めずに）注意を伝える
+      comments.push({
+        type: 'warning',
+        title: 'ここはすこし注意です',
+        text: `いまの支出ペースだと、約${kpis.lifetimeAge}歳で資産がいったん尽きる計算です。${recovery}責めたいわけではなく、支出か積立をすこし整えるだけで変わる数字です。`,
+        actions: REVIEW_ACTIONS,
+      });
+    } else {
+      comments.push(pick([
+        {
+          type: 'info',
+          title: '見直しの余地があります',
+          text: `いまのペースだと、資産は約${kpis.lifetimeAge}歳まで持つ計算です。${recovery}積立や支出の調整で、ここは延ばせる可能性があります。`,
+          actions: REVIEW_ACTIONS,
+        },
+        {
+          type: 'info',
+          title: '資産寿命を延ばせます',
+          text: `約${kpis.lifetimeAge}歳まで持つ計算です。${recovery}無理のない範囲で、できるところから調整すると改善しやすいです。`,
+          actions: REVIEW_ACTIONS,
+        },
+      ], seed));
+    }
+  }
+
   // 目標到達
-  if (kpis.targetAge !== null) {
+  if (kpis.targetAge !== null && !kpis.survivesToEnd) {
+    // 目標には届くが資産が続かないプラン: 褒めずに事実＋宿題をセットで
+    comments.push({
+      type: 'info',
+      title: '目標到達と持ちこたえはセットで',
+      text: `目標には約${kpis.targetAge}歳ごろ届く計算です。ただ、その先の持ちこたえが課題なので、上の見直しとあわせて考えるのがおすすめです。`,
+    });
+  } else if (kpis.targetAge !== null) {
     comments.push(pick([
       {
         type: 'good',
@@ -68,7 +107,7 @@ export function buildComments(kpis, params, seed = SESSION_SEED) {
     ], seed));
   }
 
-  // 資産寿命（主役）
+  // 資産寿命（主役）— 尽きるケースは冒頭で伝え済み
   if (kpis.survivesToEnd) {
     comments.push(pick([
       {
@@ -82,20 +121,7 @@ export function buildComments(kpis, params, seed = SESSION_SEED) {
         text: `${params.endAge}歳までしっかり持つ計算です。今のペースで良い部分が多くあります。`,
       },
     ], seed));
-  } else if (kpis.lifetimeAge !== null) {
-    comments.push(pick([
-      {
-        type: 'info',
-        title: '見直しの余地があります',
-        text: `いまのペースだと、資産は約${kpis.lifetimeAge}歳まで持つ計算です。積立や支出の調整で、ここは延ばせる可能性があります。`,
-      },
-      {
-        type: 'info',
-        title: '資産寿命を延ばせます',
-        text: `約${kpis.lifetimeAge}歳まで持つ計算です。無理のない範囲で、できるところから調整すると改善しやすいです。`,
-      },
-    ], seed));
-  } else {
+  } else if (kpis.lifetimeAge === null) {
     comments.push({
       type: 'warning',
       title: '収支の見直しが必要です',
@@ -103,8 +129,8 @@ export function buildComments(kpis, params, seed = SESSION_SEED) {
     });
   }
 
-  // 終了年齢時点の残高（プラスなら安心材料として添える）
-  if (kpis.finalAssets > 0) {
+  // 終了年齢時点の残高（途中で尽きないプランでだけ、安心材料として添える）
+  if (kpis.survivesToEnd && kpis.finalAssets > 0) {
     comments.push(pick([
       {
         type: 'info',

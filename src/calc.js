@@ -125,18 +125,21 @@ export function deriveKpis(series, params) {
   }
   const yearsToTarget = targetAge === null ? null : targetAge - params.currentAge;
 
-  const survivesToEnd = finalAssets > 0;
+  // 資産寿命 = 「最初に」資産が尽きる直前の年齢。
+  // 年金や退職金でグラフ後半が持ち直しても、一度尽きる時点を正直に伝える
+  // （後ろ側だけ見て安心圏と言ってしまうバグの修正 — 2026-07-10）
   let lifetimeAge = null;
-  if (!survivesToEnd) {
-    for (let i = series.length - 1; i >= 0; i--) {
-      if (series[i].assets > 0) {
-        lifetimeAge = series[i].age;
-        break;
-      }
+  for (let i = 1; i < series.length; i++) {
+    if (series[i].assets <= 0 && series[i - 1].assets > 0) {
+      lifetimeAge = series[i - 1].age;
+      break;
     }
   }
+  const survivesToEnd = lifetimeAge === null && finalAssets > 0;
+  // 一度尽きた後、年金などで終了年齢時点はプラスに戻るケース
+  const recoversAfterDepletion = lifetimeAge !== null && finalAssets > 0;
 
-  return { currentAssets, finalAssets, targetAge, yearsToTarget, lifetimeAge, survivesToEnd };
+  return { currentAssets, finalAssets, targetAge, yearsToTarget, lifetimeAge, survivesToEnd, recoversAfterDepletion };
 }
 
 // 「ちかい目標」モード用: 目標額に届くまでの月数（年次系列を月割りで補間した概算）。
