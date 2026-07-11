@@ -77,10 +77,17 @@ body {
 .topbar button,
 .tb-name strong { white-space: nowrap; }
 .tb-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-.tb-brand img { width: 40px; height: 40px; object-fit: contain; }
+/* アイコンは顔+上半身のクロップ版（piyo-face.png）を丸窓で。全身版より顔が大きく見える */
+.tb-brand img {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-primary) 22%, white);
+}
 .tb-name { display: flex; flex-direction: column; line-height: 1.2; }
-.tb-name strong { font-family: var(--font-display); font-size: 18px; color: var(--color-primary-deep); }
-.tb-name small { font-size: 10px; color: var(--color-muted); }
+.tb-name strong { font-family: var(--font-display); font-size: 21px; color: var(--color-primary-deep); }
+.tb-name small { font-size: 10.5px; color: var(--color-muted); }
 .tb-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .tb-nav a,
 .tb-nav button {
@@ -119,7 +126,7 @@ body {
 @media (max-width: 700px) {
   .topbar { padding: 8px 10px; gap: 6px; }
   .tb-name small { display: none; }
-  .tb-brand img { width: 34px; height: 34px; }
+  .tb-brand img { width: 40px; height: 40px; }
   .tb-nav { gap: 0; }
   .tb-nav a,
   .tb-nav button { font-size: 12px; padding: 6px 6px; }
@@ -127,7 +134,7 @@ body {
   .tb-cta .dg-full { display: none; }
   .tb-cta .dg-short { display: inline; }
   .tb-cta { font-size: 12px; padding: 8px 12px; }
-  .tb-name strong { font-size: 16px; }
+  .tb-name strong { font-size: 18px; }
 }
 @media (max-width: 430px) {
   .tb-nav .nav-zukan { display: none; }
