@@ -108,3 +108,22 @@ export function saveState(state, storage = globalThis.localStorage) {
     /* localStorage 使用不可でも無視 */
   }
 }
+
+// アプリが端末に保存するキーの一覧（「すべてのデータを削除」で消す対象）。
+// 新しいキーを追加したら、ここにも必ず足すこと
+const APP_KEYS = [
+  KEY,
+  'money-vision-stamps',
+  'money-vision-stamp-recap',
+  'mv-hero-done',
+  'mv-pwa-hint-done',
+  'mv-revealed',
+];
+
+export function clearAllData(storage = globalThis.localStorage) {
+  try {
+    for (const k of APP_KEYS) storage?.removeItem(k);
+  } catch {
+    /* localStorage 使用不可でも無視 */
+  }
+}

@@ -1,6 +1,6 @@
 import { projectAssets, deriveKpis, educationCostAt, monthsToTarget, nearWindowYears, EDUCATION_COURSES } from './calc.js';
 import { buildComments } from './comments.js';
-import { loadState, saveState, normalizeState, addScenario, removeScenario, DEFAULT_ADVANCED } from './storage.js';
+import { loadState, saveState, normalizeState, addScenario, removeScenario, clearAllData, DEFAULT_ADVANCED } from './storage.js';
 import { renderChart } from './chart.js';
 import { fmtMoney, manToYen, yenToMan } from './format.js';
 import { deriveValidation } from './validation.js';
@@ -166,7 +166,7 @@ function renderKpis(kpis, params, { near = false, windowYears = 5, assetsWindow 
       ? `${params.endAge}歳までに\n未到達`
       : `あと${kpis.yearsToTarget}年\n（${kpis.targetAge}歳）`;
   life.textContent = kpis.survivesToEnd
-    ? `${params.endAge}歳まで\n安心圏`
+    ? `${params.endAge}歳まで\n維持見込み`
     : kpis.lifetimeAge === null
       ? '見直しの\n余地あり'
       : `約${kpis.lifetimeAge}歳まで`;
@@ -749,7 +749,7 @@ function update({ withReaction = false, light = false } = {}) {
 
 // 資産寿命の短い言い方（シナリオ比較用）
 function lifeText(kpis, endAge) {
-  if (kpis.survivesToEnd) return `${endAge}歳まで安心圏`;
+  if (kpis.survivesToEnd) return `${endAge}歳まで維持見込み`;
   return kpis.lifetimeAge === null ? '要見直し' : `資産寿命 約${kpis.lifetimeAge}歳`;
 }
 
@@ -899,6 +899,14 @@ function init() {
 
   $('exportBtn').addEventListener('click', exportState);
   $('importBtn').addEventListener('click', () => $('importFile').click());
+  $('deleteAllBtn').addEventListener('click', () => {
+    const ok = window.confirm(
+      'この端末に保存されたミラためのデータ（入力した数字・毎月のきろく・スタンプ・設定）をすべて削除します。\n元に戻せません。削除しますか？'
+    );
+    if (!ok) return;
+    clearAllData();
+    location.reload();
+  });
   $('importFile').addEventListener('change', (e) => {
     const file = e.target.files?.[0];
     if (file) importStateFile(file);

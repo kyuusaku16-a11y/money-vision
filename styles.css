@@ -435,6 +435,8 @@ footer p { margin: 2px 0; font-size: 11px; color: var(--color-muted); line-heigh
 .event-del:hover { color: var(--color-warn); }
 .add-event { margin-top: 6px; border: 1px dashed var(--color-primary); background: none; color: var(--color-primary-deep); border-radius: 10px; padding: 8px 12px; font-size: 13px; cursor: pointer; font-family: inherit; }
 .add-event:hover { background: var(--color-good-bg); }
+.add-event.delete-all { border-color: var(--color-warn); color: var(--color-warn); }
+.add-event.delete-all:hover { background: var(--color-warn-bg); }
 .backup-row { display: flex; gap: 8px; flex-wrap: wrap; }
 
 /* イベントプリセット */
@@ -1014,6 +1016,9 @@ header .tagline { font-size: 13px; }
 .guide-body { padding: 24px 26px; line-height: 1.9; }
 .guide-body h2 { font-family: var(--font-display); font-size: 19px; color: var(--color-ink); margin: 26px 0 8px; }
 .guide-body h2:first-of-type { margin-top: 6px; }
+.guide-body h1 { font-family: var(--font-display); font-size: 21px; color: var(--color-ink); margin: 6px 0 8px; }
+.column-meta { margin-top: 28px; padding-top: 10px; border-top: 1px solid var(--color-line); font-size: 11px; color: var(--color-muted); line-height: 1.8; }
+.column-meta a { color: var(--color-muted); }
 .guide-body ul { padding-left: 20px; }
 .guide-body li { margin: 6px 0; }
 .guide-back { color: var(--color-muted); text-decoration: none; font-size: 13px; }

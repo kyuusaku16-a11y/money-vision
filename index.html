@@ -24,12 +24,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
-    <!-- Chart.js: Subresource Integrity (sha384) で CDN 改ざんを検証 -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"
-      integrity="sha384-JUh163oCRItcbPme8pYnROHQMC6fNKTBWtRG3I3I0erJkzNgL7uxKlNwcrcFKeqF"
-      crossorigin="anonymous"
-    ></script>
+    <!-- Chart.js 4.4.3: セルフホスト（外部CDNへの通信をなくす。取得時にsha384でCDN配布物と一致を検証済み） -->
+    <script src="vendor/chart.umd.min.js" defer></script>
   </head>
   <body>
     <!-- UIアイコン（線の太さ・角丸を統一した自前SVG。絵文字はUIに使わない） -->
@@ -90,7 +86,7 @@
             </div>
           </div>
           <div id="recordResultZone" hidden>
-            <img class="record-char" id="recordChar" src="assets/piyo-yatta.png" alt="" aria-hidden="true" />
+            <img class="record-char" id="recordChar" src="assets/piyo-yatta.png" alt="" aria-hidden="true" loading="lazy" />
             <p class="record-result" id="recordResultText"></p>
             <p class="record-trend" id="recordTrend" hidden></p>
             <div class="share-dialog-actions">
@@ -164,7 +160,7 @@
           </div>
           <div class="cockpit-main">
             <div class="chart-box"><canvas id="chart"></canvas></div>
-            <button id="defaultsNote" class="defaults-note" type="button" hidden>年金は平均値で計算中（タップで変更）</button>
+            <button id="defaultsNote" class="defaults-note" type="button" hidden>年金は仮の値（年180万円）で計算中（タップで変更）</button>
             <div class="scenario-row">
               <button id="saveScenarioBtn" type="button" class="scenario-save"><svg class="ico" aria-hidden="true"><use href="#i-bookmark"/></svg>いまのプランを保存してくらべる</button>
               <div id="scenarioList" class="scenario-list"></div>
@@ -175,7 +171,7 @@
 
         <p class="trust-note">登録不要・入力データは端末内のみ・投資助言ではありません</p>
 
-        <div id="reaction" class="reaction" hidden aria-live="polite"><img class="reaction-img" id="reactionImg" src="assets/bird-pink.png" alt="" aria-hidden="true" /><span id="reactionText"></span></div>
+        <div id="reaction" class="reaction" hidden aria-live="polite"><img class="reaction-img" id="reactionImg" src="assets/bird-pink.png" alt="" aria-hidden="true" loading="lazy" /><span id="reactionText"></span></div>
         <div class="summary-comment" id="summaryComment"></div>
 
       </section>
@@ -250,6 +246,9 @@
             <button id="importBtn" class="add-event" type="button"><svg class="ico" aria-hidden="true"><use href="#i-down"/></svg>設定を読み込む</button>
           </div>
           <input type="file" id="importFile" accept=".json,application/json" hidden />
+          <h3>データの削除</h3>
+          <p class="field-note">入力した数字・毎月のきろく・スタンプ・設定を、この端末からすべて消して最初の状態に戻します</p>
+          <button id="deleteAllBtn" class="add-event delete-all" type="button">すべてのデータを削除する</button>
           <p id="backupMsg" class="field-note" hidden aria-live="polite"></p>
         </details>
       </section>
@@ -342,9 +341,9 @@
     </button>
 
     <div class="page-chars" aria-hidden="true">
-      <img class="pc-flower" src="assets/flower.png" alt="" />
-      <img src="assets/piyo-watering.png" alt="" />
-      <img class="pc-flower" src="assets/flowers.png" alt="" />
+      <img class="pc-flower" src="assets/flower.png" alt="" loading="lazy" />
+      <img src="assets/piyo-watering.png" alt="" loading="lazy" />
+      <img class="pc-flower" src="assets/flowers.png" alt="" loading="lazy" />
     </div>
 
     <footer>

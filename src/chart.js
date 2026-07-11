@@ -1,6 +1,6 @@
 // app/src/chart.js
 // Chart.js rendering wrapper.
-// Uses the browser global `Chart` (loaded via CDN in index.html — no import needed).
+// Uses the browser global `Chart` (loaded from vendor/chart.umd.min.js in index.html — no import needed).
 
 /* global Chart */
 
