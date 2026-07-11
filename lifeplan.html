@@ -111,6 +111,26 @@
       .sheet-foot p { margin: 0; font-size: 9px; color: #a08d82; line-height: 1.6; flex: 1; }
       .sheet-foot img { width: 26px; height: 26px; opacity: 0.9; }
 
+      /* 2枚目: 診断レポートと性格タイプ */
+      .sheet + .sheet { margin-top: 26px; }
+      .lp-report h3 { display: flex; align-items: center; gap: 6px; margin: 12px 0 4px; font-size: 12px; color: var(--color-primary-deep, #b0616d); }
+      .lp-report h3::after { content: ''; flex: 1; height: 1px; background: color-mix(in srgb, var(--color-primary, #e8a0aa) 45%, transparent); }
+      .lp-report p { margin: 3px 0; font-size: 11.5px; line-height: 1.75; }
+      .lp-report .lead { background: #f8f1e8; border-radius: 8px; padding: 8px 12px; margin: 10px 0 0; }
+      .lp-report .tip { padding-left: 18px; text-indent: -18px; }
+      .lp-type { display: flex; gap: 14px; align-items: center; background: color-mix(in srgb, var(--color-primary, #e8a0aa) 10%, #fffdf8); border-radius: 12px; padding: 10px 14px; }
+      .lp-type img { width: 92px; height: 92px; object-fit: contain; }
+      .lp-type-body { flex: 1; }
+      .lp-type-body p { margin: 2px 0; font-size: 11.5px; line-height: 1.7; }
+      .lp-type-code { font-size: 10px; letter-spacing: 0.2em; color: #a08d82; }
+      .lp-type-name { font-size: 17px; font-weight: 700; color: var(--color-primary-deep, #b0616d); }
+      .lp-type-hitokoto { color: #8d786f; }
+      .lp-type-body strong { display: inline-block; min-width: 74px; font-size: 10px; color: var(--color-primary-deep, #b0616d); }
+      .lp-axes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px 10px; margin: 10px 0 0; }
+      .lp-axes div { background: #f8f1e8; border-radius: 8px; padding: 5px 10px; }
+      .lp-axes dt { font-size: 9.5px; color: #8d786f; }
+      .lp-axes dd { margin: 1px 0 0; font-size: 11.5px; font-weight: 700; }
+
       /* データ未入力のとき */
       .lp-empty { max-width: 480px; margin: 60px auto; text-align: center; background: #fffdf8; border-radius: 16px; padding: 36px 24px; box-shadow: 0 10px 26px rgba(107, 81, 74, 0.14); }
       .lp-empty img { width: 88px; }
@@ -147,6 +167,7 @@
         .sheet.dense .lp-chart { width: 86%; margin-inline: auto; }
         .sheet.dense .lp-summary p { font-size: 10px; }
         .lp-empty { display: none; }
+        .sheet2 { break-before: page; page-break-before: always; margin-top: 0; }
         .lp-table tr.milestone td, .lp-table tr.goal td, .lp-table tr.dry td,
         .lp-assump div, .lp-summary {
           -webkit-print-color-adjust: exact;
@@ -207,9 +228,44 @@
         <p>
           この表はミラため（無料シミュレーター）による概算で、将来の成果を保証するものではありません。利回り・物価・制度の変化で結果は変わります。
           投資助言ではありません。／ 年に1回、数字を入れ直して作り直すのがおすすめです。<br />
-          https://kyuusaku16-a11y.github.io/miratame/
+          https://kyuusaku16-a11y.github.io/miratame/ ／ 1枚目
         </p>
         <img src="assets/piyo-watering.png" alt="" aria-hidden="true" />
+      </footer>
+    </article>
+
+    <!-- 2枚目: くわしい診断（レポート全文＋性格タイプ） -->
+    <article class="sheet sheet2" id="sheet2" hidden>
+      <header class="sheet-head">
+        <img src="assets/piyo-face.png" alt="" aria-hidden="true" />
+        <div class="sheet-title">
+          <h1>くわしい診断</h1>
+          <p>これからの見通しと、あなたのお金の性格 — ミラため</p>
+        </div>
+        <div class="sheet-date" id="sheetDate2"></div>
+      </header>
+
+      <div class="lp-report" id="reportZone"></div>
+
+      <h2 class="lp-sec-h">🌱 あなたのお金の性格</h2>
+      <div class="lp-type" id="typeZone">
+        <img id="typeImg" alt="" />
+        <div class="lp-type-body">
+          <p class="lp-type-code" id="typeCode"></p>
+          <p class="lp-type-name" id="typeName"></p>
+          <p class="lp-type-hitokoto" id="typeHitokoto"></p>
+          <p><strong>つよみ</strong><span id="typeTsuyomi"></span></p>
+          <p><strong>のばしどころ</strong><span id="typeNobashi"></span></p>
+        </div>
+      </div>
+      <dl class="lp-axes" id="axesList"></dl>
+
+      <footer class="sheet-foot">
+        <p>
+          診断・性格タイプは入力値から機械的に判定するお楽しみ機能です。投資助言ではありません。<br />
+          全16タイプの図鑑: https://kyuusaku16-a11y.github.io/miratame/types.html ／ 2枚目
+        </p>
+        <img src="assets/piyo-memo.png" alt="" aria-hidden="true" />
       </footer>
     </article>
 
@@ -217,7 +273,8 @@
       import { loadState } from './src/storage.js';
       import { projectAssets, deriveKpis } from './src/calc.js';
       import { buildLifeplanRows, buildLifeplanChartSvg } from './src/lifeplan.js';
-      import { buildNarrativeReport } from './src/advice.js';
+      import { buildNarrativeReport, buildAdvice } from './src/advice.js';
+      import { judgeType, buildAxisDetails, typeImagePath } from './src/share.js';
       import { fmtMoney } from './src/format.js';
 
       document.getElementById('printBtn').addEventListener('click', () => window.print());
@@ -290,8 +347,9 @@
           tbody.appendChild(tr);
         }
 
-        // 要点
-        const report = buildNarrativeReport(params, series, kpis, [], 0);
+        // 要点（2枚目のレポートと同じ材料から）
+        const advice = buildAdvice(params, series, kpis);
+        const report = buildNarrativeReport(params, series, kpis, advice, 0);
         const points = [
           kpis.survivesToEnd
             ? `資産は${params.endAge}歳までもつ計算です（${params.endAge}歳時点で約${fmtMoney(kpis.finalAssets)}）。`
@@ -313,6 +371,64 @@
         if (rows.length + noteLines >= 22) document.getElementById('sheet').classList.add('dense');
 
         document.getElementById('sheet').hidden = false;
+
+        // ---- 2枚目: くわしい診断 ----
+        document.getElementById('sheetDate2').innerHTML =
+          `作成日<strong>${now.getFullYear()}.${now.getMonth() + 1}.${now.getDate()}</strong>`;
+
+        const zone = document.getElementById('reportZone');
+        const addP = (parent, text, cls) => {
+          const el = document.createElement('p');
+          el.textContent = text;
+          if (cls) el.className = cls;
+          parent.appendChild(el);
+        };
+        const addH = (text) => {
+          const h = document.createElement('h3');
+          h.textContent = text;
+          zone.appendChild(h);
+        };
+        // 総合評価（リード）
+        const lead = document.createElement('div');
+        lead.className = 'lead';
+        for (const line of report.lines) addP(lead, line);
+        zone.appendChild(lead);
+        // 章（時間割・山場・もしもテスト）
+        for (const sec of report.sections) {
+          addH(sec.h);
+          for (const line of sec.lines) addP(zone, line);
+        }
+        // 💡次の一手（レポート本文と同じ文は出さない）
+        const reportLines = [...report.lines, ...report.sections.flatMap((s) => s.lines)];
+        const tips = advice.filter((a) => a.type === 'tip' && !reportLines.includes(a.text));
+        if (tips.length) {
+          addH('次の一手');
+          for (const t of tips) addP(zone, `💡 ${t.text}`, 'tip');
+        }
+
+        // お金の性格タイプ＋4軸
+        const type = judgeType(params);
+        const typeImg = document.getElementById('typeImg');
+        typeImg.src = typeImagePath(type.code);
+        typeImg.addEventListener('error', () => (typeImg.hidden = true));
+        document.getElementById('typeCode').textContent = type.code.split('').join('-');
+        document.getElementById('typeName').textContent = type.name;
+        document.getElementById('typeHitokoto').textContent = `「${type.hitokoto}」`;
+        document.getElementById('typeTsuyomi').textContent = type.tsuyomi;
+        document.getElementById('typeNobashi').textContent = type.nobashi;
+        document.getElementById('axesList').append(
+          ...buildAxisDetails(params).map((a) => {
+            const box = document.createElement('div');
+            const dt = document.createElement('dt');
+            dt.textContent = `${a.label} — ${a.sideLabel}`;
+            const dd = document.createElement('dd');
+            dd.textContent = a.missing ?? `${a.valueText}（${a.thresholdText}）`;
+            box.append(dt, dd);
+            return box;
+          })
+        );
+
+        document.getElementById('sheet2').hidden = false;
       }
     </script>
     <script data-goatcounter="https://money-vision.goatcounter.com/count" async src="vendor/count.js"></script>
