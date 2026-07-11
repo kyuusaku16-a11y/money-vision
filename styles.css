@@ -319,7 +319,8 @@ summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color
 .comment.diagnosis {
   grid-column: 1 / -1;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) 72px;
+  grid-template-columns: minmax(0, 1fr) 120px;
+  align-items: start; /* レポートが長いので、ぴよはタイトル横の右上に固定 */
   border: 1.5px solid #9fc8b3;
   background: #f5fbf1;
 }
@@ -345,11 +346,13 @@ summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color
   line-height: 1;
 }
 .comment.diagnosis .comment-visual {
-  width: 72px;
-  height: 72px;
-  border-radius: 22px;
-  background: var(--color-good-bg);
+  width: 120px;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
   font-size: 38px;
+  align-self: start;
+  margin-top: -2px;
 }
 .comment-lines { display: flex; flex-direction: column; gap: 8px; }
 .comment-lines p { margin: 0; }
@@ -746,8 +749,8 @@ header .char-img {
   max-height: 88px;
   object-fit: contain;
 }
-.comment.diagnosis .comment-visual { width: 170px; height: 120px; }
-.comment.diagnosis .comment-visual img { max-width: 160px; max-height: 112px; }
+/* 虫めがねのぴよは右向きの絵なので、カード右端では本文側（左）を向くよう反転する */
+.comment.diagnosis .comment-visual img { max-width: 116px; max-height: 116px; transform: scaleX(-1); }
 
 .comment .comment-lead,
 .summary-comment .comment-lead { width: 56px; height: 56px; }
@@ -767,8 +770,8 @@ header .char-img {
   .comment.note .comment-visual img,
   .comment.education-note .comment-visual img,
   .summary-comment .comment-visual img { max-width: 82px; max-height: 68px; }
-  .comment.diagnosis .comment-visual { width: 118px; height: 88px; }
-  .comment.diagnosis .comment-visual img { max-width: 110px; max-height: 82px; }
+  .comment.diagnosis .comment-visual { width: 118px; height: auto; }
+  .comment.diagnosis .comment-visual img { max-width: 110px; max-height: 110px; }
   .comment .comment-lead,
   .summary-comment .comment-lead { width: 44px; height: 44px; }
   .comment .comment-lead img,
@@ -817,9 +820,9 @@ header .char-img {
   .summary-comment .comment-visual { display: none; }
   .comment,
   .summary-comment .comment { grid-template-columns: 44px minmax(0, 1fr); }
-  .comment.diagnosis { grid-template-columns: minmax(0, 1fr) 96px; }
-  .comment.diagnosis .comment-visual { width: 96px; height: 74px; }
-  .comment.diagnosis .comment-visual img { max-width: 90px; max-height: 70px; }
+  .comment.diagnosis { grid-template-columns: minmax(0, 1fr) 84px; }
+  .comment.diagnosis .comment-visual { width: 84px; height: auto; }
+  .comment.diagnosis .comment-visual img { max-width: 80px; max-height: 80px; }
 }
 
 /* .comment.note の独自グリッド(60px/1fr/150px)を統一規格に合流させる */
