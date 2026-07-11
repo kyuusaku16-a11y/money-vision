@@ -305,8 +305,7 @@
             <p class="lp-type-hitokoto" id="typeHitokoto"></p>
           </div>
         </div>
-        <p class="lp-type-line"><strong>財布のクセ</strong><span id="typeTsuyomi"></span></p>
-        <p class="lp-type-line"><strong>ごきげんルール</strong><span id="typeNobashi"></span></p>
+        <p class="lp-type-line"><strong>あなたの生態</strong><span id="typeTsuyomi"></span></p>
       </div>
       <dl class="lp-axes" id="axesList"></dl>
 
@@ -483,7 +482,6 @@
         document.getElementById('typeName').textContent = type.name;
         document.getElementById('typeHitokoto').textContent = `「${type.hitokoto}」`;
         document.getElementById('typeTsuyomi').textContent = type.tsuyomi;
-        document.getElementById('typeNobashi').textContent = type.nobashi;
         document.getElementById('axesList').append(
           ...buildAxisDetails(params).map((a) => {
             const box = document.createElement('div');

@@ -1460,7 +1460,6 @@ async function openShareDialog() {
 
   currentShare = { text, url, code: type.code, type };
   $('shareTsuyomi').textContent = type.tsuyomi;
-  $('shareNobashi').textContent = type.nobashi;
   renderAxisMeters(paramsOf(state));
   // 詳細説明文（v3ロング版）は診断を開いたときだけ読み込む（初期ロードを増やさない）
   try {
