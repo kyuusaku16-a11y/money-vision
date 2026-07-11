@@ -166,38 +166,55 @@
            文書全体が2ページ分を超えて白紙ページが生まれる */
         html, body.lifeplan { background: #fff; min-height: 0; height: auto; padding: 0; margin: 0; }
         .lp-toolbar { display: none; }
+        .lp-empty { display: none; }
         .sheet + .sheet { margin-top: 0; }
+        .sheet2 { break-before: page; page-break-before: always; margin-top: 0; }
+        /* 収まり戦略: iOSなどブラウザが独自の用紙余白を付けても1シート=1ページになるよう、
+           中身を約270mm以下に圧縮し、高さは固定しない（297mmぴったり指定は3〜4枚化の原因だった） */
         .sheet {
           width: 210mm;
-          /* 297mmぴったりに引き伸ばすと丸め誤差で次ページへあふれる（3〜4枚化の原因）。
-             290mmにして7mmの安全マージンを取る（メモ欄が余白を吸収して見た目は変わらない） */
-          min-height: 290mm;
+          min-height: 0;
+          aspect-ratio: auto;
           margin: 0;
           border-radius: 0;
           box-shadow: none;
-          padding: 10mm 13mm 8mm;
+          padding: 8mm 12mm 6mm;
         }
-        /* A4一枚に収めるための圧縮（グラフ込みでも1ページ） */
-        .lp-assump { gap: 4px 8px; margin: 8px 0 10px; }
-        .lp-assump div { padding: 4px 9px; }
-        .lp-assump dd { font-size: 12px; }
-        .lp-chart { margin-bottom: 8px; }
-        .lp-table { font-size: 10.5px; }
-        .lp-table td { padding: 2.5px 8px; }
-        .lp-summary { margin-top: 10px; padding: 7px 11px; }
-        .lp-summary p { font-size: 10.5px; line-height: 1.6; }
-        .sheet-head { padding-bottom: 8px; }
-        .sheet-foot { margin-top: 8px; padding-top: 6px; }
-        /* 行と注記が多いプランは、さらに一段詰める（それでもA4一枚に） */
-        .sheet.dense .lp-table { font-size: 10px; }
-        .sheet.dense .lp-table td { padding: 2px 8px; }
-        .sheet.dense .lp-chart { width: 86%; margin-inline: auto; }
-        .sheet.dense .lp-summary p { font-size: 10px; }
-        .lp-empty { display: none; }
-        .sheet2 { break-before: page; page-break-before: always; margin-top: 0; }
-        .sheet { aspect-ratio: auto; }
-        /* メモ欄は余白吸収係: 中身が多いプランでは最小高さを譲ってA4一枚を守る */
-        .lp-memo { min-height: 12mm; }
+        .sheet-head { padding-bottom: 7px; }
+        .sheet-head img { width: 40px; height: 40px; }
+        .sheet-title h1 { font-size: 19px; }
+        .sheet-date { width: 56px; height: 56px; font-size: 9px; }
+        .lp-assump { gap: 4px 8px; margin: 7px 0 8px; }
+        .lp-assump div { padding: 3px 9px; }
+        .lp-assump dd { font-size: 11.5px; }
+        .lp-chart { margin-bottom: 6px; }
+        .lp-chart svg { display: block; height: 34mm; width: auto; margin: 0 auto; }
+        .lp-sec-h { margin-bottom: 4px; font-size: 11px; }
+        .lp-table { font-size: 10px; }
+        .lp-table td { padding: 2px 8px; }
+        .lp-summary { margin-top: 8px; padding: 6px 10px; }
+        .lp-summary p { font-size: 10px; line-height: 1.55; }
+        .lp-report h3 { margin: 8px 0 3px; font-size: 11px; }
+        .lp-report p { font-size: 10.5px; line-height: 1.6; margin: 2px 0; }
+        .lp-report .lead { padding: 6px 10px; margin-top: 8px; }
+        .lp-type { padding: 8px 12px 9px; }
+        .lp-type img { width: 68px; height: 68px; }
+        .lp-type-name { font-size: 15px; }
+        .lp-type-hitokoto { font-size: 13px; margin-top: 3px; }
+        .lp-type-line { font-size: 10.5px; line-height: 1.6; margin-top: 5px; }
+        .lp-axes { gap: 6px 12px; margin-top: 8px; }
+        .lp-axes .axis { padding: 5px 10px 6px; }
+        .lp-aruaru li, .lp-otoshiana { font-size: 10px; line-height: 1.65; }
+        .lp-cols { margin-top: 8px; }
+        .lp-memo { min-height: 10mm; margin-top: 8px; }
+        .sheet-foot { margin-top: 6px; padding-top: 5px; }
+        .sheet-foot p { font-size: 8.5px; }
+        .sheet-foot img { width: 22px; height: 22px; }
+        /* 行と注記が多いプランは、さらに一段詰める */
+        .sheet.dense .lp-table { font-size: 9.5px; }
+        .sheet.dense .lp-table td { padding: 1.8px 8px; }
+        .sheet.dense .lp-chart svg { height: 30mm; }
+        .sheet.dense .lp-summary p { font-size: 9.5px; }
         .lp-table tr.milestone td, .lp-table tr.goal td, .lp-table tr.dry td,
         .lp-assump div, .lp-summary, .lp-report .lead, .lp-type,
         .lp-axes .axis, .lp-axes .axis-gauge, .lp-axes .axis-fill, .lp-axes .axis-mark {
