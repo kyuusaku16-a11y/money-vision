@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>わたしのライフプラン表｜ミラため</title>
+    <!-- 個人の数字を表示するページなので検索には載せない -->
+    <meta name="robots" content="noindex" />
+    <link rel="icon" href="assets/sprout.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      /* ===== 画面: 机の上に置かれた1枚の紙 ===== */
+      body.lifeplan {
+        margin: 0;
+        font-family: 'Zen Maru Gothic', 'Hiragino Maru Gothic ProN', sans-serif;
+        background:
+          radial-gradient(circle at 20% -10%, rgba(255, 255, 255, 0.55), transparent 50%),
+          repeating-linear-gradient(-45deg, rgba(255, 255, 255, 0.16) 0 2px, transparent 2px 14px),
+          var(--color-bg, #f6efe7);
+        min-height: 100vh;
+      }
+      .lp-toolbar {
+        max-width: 210mm;
+        margin: 0 auto;
+        padding: 14px 12px 4px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .lp-toolbar a.back { color: var(--color-muted); text-decoration: none; font-size: 13px; }
+      .lp-toolbar .spacer { flex: 1; }
+      .lp-print-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border: none;
+        border-radius: 999px;
+        padding: 10px 20px;
+        font: inherit;
+        font-weight: 700;
+        color: #fff;
+        background: var(--color-primary-deep, #b0616d);
+        cursor: pointer;
+        box-shadow: 0 3px 0 rgba(0, 0, 0, 0.12);
+      }
+      .lp-print-btn:active { transform: translateY(2px); box-shadow: none; }
+      .lp-hint { width: 100%; margin: 2px 0 0; font-size: 11.5px; color: var(--color-muted); }
+
+      .sheet {
+        box-sizing: border-box;
+        width: min(210mm, calc(100vw - 16px));
+        margin: 10px auto 40px;
+        padding: 12mm 12mm 9mm;
+        background: #fffdf8;
+        border-radius: 6px;
+        box-shadow: 0 12px 30px rgba(107, 81, 74, 0.18), 0 2px 6px rgba(107, 81, 74, 0.1);
+        color: #4c3b35;
+      }
+
+      /* ===== シートの中身 ===== */
+      .sheet-head { display: flex; align-items: center; gap: 12px; border-bottom: 3px solid var(--color-primary, #e8a0aa); padding-bottom: 10px; }
+      .sheet-head img { width: 46px; height: 46px; border-radius: 50%; background: color-mix(in srgb, var(--color-primary, #e8a0aa) 22%, white); }
+      .sheet-title { flex: 1; }
+      .sheet-title h1 { margin: 0; font-size: 21px; letter-spacing: 0.06em; color: var(--color-primary-deep, #b0616d); }
+      .sheet-title p { margin: 2px 0 0; font-size: 11px; color: #8d786f; }
+      .sheet-date {
+        border: 1.6px dashed var(--color-primary, #e8a0aa);
+        border-radius: 50%;
+        width: 64px;
+        height: 64px;
+        display: grid;
+        place-content: center;
+        text-align: center;
+        font-size: 10px;
+        line-height: 1.5;
+        color: var(--color-primary-deep, #b0616d);
+        transform: rotate(4deg);
+      }
+      .sheet-date strong { font-size: 11px; }
+
+      .lp-assump { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px 10px; margin: 12px 0 14px; }
+      .lp-assump div { background: #f8f1e8; border-radius: 8px; padding: 6px 10px; }
+      .lp-assump dt { font-size: 9.5px; color: #8d786f; }
+      .lp-assump dd { margin: 1px 0 0; font-size: 13px; font-weight: 700; }
+
+      .lp-sec-h { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: 12px; color: var(--color-primary-deep, #b0616d); }
+      .lp-sec-h::after { content: ''; flex: 1; height: 1px; background: color-mix(in srgb, var(--color-primary, #e8a0aa) 45%, transparent); }
+
+      table.lp-table { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+      .lp-table th { text-align: left; font-size: 10px; color: #8d786f; font-weight: 700; padding: 2px 8px; border-bottom: 1.5px solid #e5d5c5; }
+      .lp-table td { padding: 3.5px 8px; border-bottom: 1px solid #f0e4d5; vertical-align: top; }
+      .lp-table td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+      .lp-table tr.milestone td { background: color-mix(in srgb, var(--color-primary, #e8a0aa) 12%, transparent); }
+      .lp-table tr.goal td { background: #fdf3d7; }
+      .lp-table tr.dry td { background: #fbe9e5; }
+      .lp-table .note { display: block; }
+      .lp-table .note + .note { margin-top: 1px; }
+
+      .lp-summary { margin: 14px 0 0; background: #f4f7ef; border-left: 4px solid #94b8a4; border-radius: 6px; padding: 9px 12px; }
+      .lp-summary p { margin: 2px 0; font-size: 11.5px; line-height: 1.7; }
+      .lp-summary strong { color: #5d7f6d; font-size: 11px; display: block; }
+
+      .sheet-foot { margin-top: 12px; display: flex; align-items: flex-end; gap: 10px; border-top: 1px solid #eadbca; padding-top: 8px; }
+      .sheet-foot p { margin: 0; font-size: 9px; color: #a08d82; line-height: 1.6; flex: 1; }
+      .sheet-foot img { width: 26px; height: 26px; opacity: 0.9; }
+
+      /* データ未入力のとき */
+      .lp-empty { max-width: 480px; margin: 60px auto; text-align: center; background: #fffdf8; border-radius: 16px; padding: 36px 24px; box-shadow: 0 10px 26px rgba(107, 81, 74, 0.14); }
+      .lp-empty img { width: 88px; }
+      .lp-empty p { color: #6b514a; line-height: 1.9; }
+      .lp-empty a { display: inline-block; margin-top: 8px; background: var(--color-primary-deep, #b0616d); color: #fff; text-decoration: none; border-radius: 999px; padding: 10px 22px; font-weight: 700; }
+
+      /* ===== 印刷: 紙そのものになる ===== */
+      @page { size: A4 portrait; margin: 0; }
+      @media print {
+        body.lifeplan { background: #fff; }
+        .lp-toolbar { display: none; }
+        .sheet {
+          width: 210mm;
+          min-height: 297mm;
+          margin: 0;
+          border-radius: 0;
+          box-shadow: none;
+          padding: 14mm 14mm 10mm;
+        }
+        .lp-empty { display: none; }
+        .lp-table tr.milestone td, .lp-table tr.goal td, .lp-table tr.dry td,
+        .lp-assump div, .lp-summary {
+          -webkit-print-color-adjust: exact;
+          print-color-adjust: exact;
+        }
+      }
+    </style>
+  </head>
+  <body class="lifeplan">
+    <script>
+      try {
+        if (JSON.parse(localStorage.getItem('money-vision-state'))?.settings?.themeId === 'forest')
+          document.documentElement.dataset.theme = 'forest';
+      } catch {}
+    </script>
+
+    <div class="lp-toolbar">
+      <a class="back" href="./">← ミラためにもどる</a>
+      <span class="spacer"></span>
+      <button class="lp-print-btn" id="printBtn" type="button">🖨️ 印刷・PDFに保存する</button>
+      <p class="lp-hint">スマホは印刷画面から「PDFとして保存」できます。データはこの端末の中だけで作られます。</p>
+    </div>
+
+    <div class="lp-empty" id="emptyZone" hidden>
+      <img src="assets/piyo-notice.png" alt="" />
+      <p>ライフプラン表は、シミュレーターの数字から作ります。<br />まずはトップで年齢と資産を入れてみてください。</p>
+      <a href="./">シミュレーターをひらく</a>
+    </div>
+
+    <article class="sheet" id="sheet" hidden>
+      <header class="sheet-head">
+        <img src="assets/piyo-face.png" alt="" aria-hidden="true" />
+        <div class="sheet-title">
+          <h1>わたしのライフプラン表</h1>
+          <p>未来のために、貯めて育てる — ミラため</p>
+        </div>
+        <div class="sheet-date" id="sheetDate"></div>
+      </header>
+
+      <dl class="lp-assump" id="assumpList"></dl>
+
+      <h2 class="lp-sec-h">🌱 人生の年表</h2>
+      <table class="lp-table" aria-label="年齢ごとの資産見込みとできごと">
+        <thead>
+          <tr><th>年齢</th><th>西暦</th><th style="text-align:right">資産の見込み</th><th>できごと</th></tr>
+        </thead>
+        <tbody id="rowsBody"></tbody>
+      </table>
+
+      <div class="lp-summary" id="summaryBox">
+        <strong>この表のよみかた</strong>
+      </div>
+
+      <footer class="sheet-foot">
+        <p>
+          この表はミラため（無料シミュレーター）による概算で、将来の成果を保証するものではありません。利回り・物価・制度の変化で結果は変わります。
+          投資助言ではありません。／ 年に1回、数字を入れ直して作り直すのがおすすめです。<br />
+          https://kyuusaku16-a11y.github.io/miratame/
+        </p>
+        <img src="assets/piyo-watering.png" alt="" aria-hidden="true" />
+      </footer>
+    </article>
+
+    <script type="module">
+      import { loadState } from './src/storage.js';
+      import { projectAssets, deriveKpis } from './src/calc.js';
+      import { buildLifeplanRows } from './src/lifeplan.js';
+      import { buildNarrativeReport } from './src/advice.js';
+      import { fmtMoney } from './src/format.js';
+
+      document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+      // 数字が入っていなければ、シートではなく案内を出す
+      if (!localStorage.getItem('money-vision-state')) {
+        document.getElementById('emptyZone').hidden = false;
+      } else {
+        const state = loadState();
+        const params = { ...state.inputs, ...state.advanced, events: state.events, children: state.children };
+        const series = projectAssets(params, params.expectedReturn / 100);
+        const kpis = deriveKpis(series, params);
+        const now = new Date();
+        const rows = buildLifeplanRows(params, series, kpis, { baseYear: now.getFullYear() });
+
+        document.getElementById('sheetDate').innerHTML =
+          `作成日<strong>${now.getFullYear()}.${now.getMonth() + 1}.${now.getDate()}</strong>`;
+
+        // いまの前提
+        const assump = [
+          ['いまの年齢', `${params.currentAge}歳`],
+          ['いまの資産', `約${fmtMoney(params.totalAsset)}`],
+          ['年収（手取り）', `約${fmtMoney(params.annualIncome)}`],
+          ['年間の支出', `約${fmtMoney(params.annualExpense)}`],
+          ['毎月の積立', `${fmtMoney(params.monthlyInvest)}／月`],
+          ['退職・年金', `${params.retireAge}歳退職・${params.pensionStartAge}歳から年金`],
+        ];
+        document.getElementById('assumpList').append(
+          ...assump.map(([t, d]) => {
+            const box = document.createElement('div');
+            const dt = document.createElement('dt');
+            dt.textContent = t;
+            const dd = document.createElement('dd');
+            dd.textContent = d;
+            box.append(dt, dd);
+            return box;
+          })
+        );
+
+        // 年表
+        const tbody = document.getElementById('rowsBody');
+        for (const r of rows) {
+          const tr = document.createElement('tr');
+          const noteText = r.notes.join(' ');
+          if (noteText.includes('尽きる')) tr.className = 'dry';
+          else if (noteText.includes('目標')) tr.className = 'goal';
+          else if (r.notes.length) tr.className = 'milestone';
+          const cells = [
+            [`${r.age}歳`, ''],
+            [r.year ? `${r.year}年` : '—', ''],
+            [r.assets === null ? '—' : `約${fmtMoney(r.assets)}`, 'num'],
+          ];
+          for (const [text, cls] of cells) {
+            const td = document.createElement('td');
+            td.textContent = text;
+            if (cls) td.className = cls;
+            tr.appendChild(td);
+          }
+          const tdNotes = document.createElement('td');
+          for (const n of r.notes) {
+            const span = document.createElement('span');
+            span.className = 'note';
+            span.textContent = n;
+            tdNotes.appendChild(span);
+          }
+          tr.appendChild(tdNotes);
+          tbody.appendChild(tr);
+        }
+
+        // 要点
+        const report = buildNarrativeReport(params, series, kpis, [], 0);
+        const points = [
+          kpis.survivesToEnd
+            ? `資産は${params.endAge}歳までもつ計算です（${params.endAge}歳時点で約${fmtMoney(kpis.finalAssets)}）。`
+            : `資産寿命は約${kpis.lifetimeAge}歳までの計算です。支出・積立・退職時期のどれかを少し動かすと変わります。`,
+          kpis.targetAge !== null
+            ? `目標の${fmtMoney(params.targetAmount)}には、${kpis.targetAge}歳ごろに届く見込みです。`
+            : `目標の${fmtMoney(params.targetAmount)}は、いまのプランでは未到達です（金額や時期の調整はこれから選べます）。`,
+          report.lines[0],
+        ];
+        const box = document.getElementById('summaryBox');
+        for (const p of points) {
+          const el = document.createElement('p');
+          el.textContent = p;
+          box.appendChild(el);
+        }
+
+        document.getElementById('sheet').hidden = false;
+      }
+    </script>
+    <script data-goatcounter="https://money-vision.goatcounter.com/count" async src="vendor/count.js"></script>
+  </body>
+</html>

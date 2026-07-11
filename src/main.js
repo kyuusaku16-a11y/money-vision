@@ -927,6 +927,15 @@ function init() {
   renderStamps();
   $('stampBtn').addEventListener('click', pressStamp);
   $('recordBtn').addEventListener('click', openRecordDialog);
+  // ライフプラン表も、数字を入れる前はお楽しみに取っておく
+  $('lifeplanBtn').addEventListener('click', (e) => {
+    if (blockWhileVeiled('ライフプラン表は、数字を入れてからのお楽しみ📄')) {
+      e.preventDefault();
+      trackEvent('lifeplan-blocked');
+    } else {
+      trackEvent('lifeplan');
+    }
+  });
   $('recordDoBtn').addEventListener('click', doRecord);
   $('recordCancelBtn').addEventListener('click', () => $('recordDialog').close());
   $('recordDoneBtn').addEventListener('click', () => $('recordDialog').close());
@@ -1350,26 +1359,32 @@ function renderAxisMeters(params) {
 // 診断→ポップアップで結果カードを見せる→そこからシェア/保存
 let currentShare = null; // { blob, file, text, url }
 
+// ベール中のお預け演出（診断・ライフプラン表で共用）。ブロックしたら true
+function blockWhileVeiled(message) {
+  if (!veiled) return false;
+  const veil = $('chartVeil');
+  const title = veil.querySelector('.veil-title');
+  const original = title.innerHTML;
+  // お預けの間だけ、ぴよもびっくり顔に
+  const veilImg = veil.querySelector('img');
+  const originalImg = veilImg?.src;
+  if (veilImg) veilImg.src = 'assets/piyo-surprised.png';
+  title.textContent = message;
+  veil.classList.add('veil-shake');
+  veil.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  setTimeout(() => {
+    veil.classList.remove('veil-shake');
+    title.innerHTML = original;
+    if (veilImg && originalImg) veilImg.src = originalImg;
+  }, 2600);
+  return true;
+}
+
 async function openShareDialog() {
   // ベール中（数字を入れる前）は診断もお楽しみに取っておく
   // （初期値のままだと全員同じタイプになってしまうため）
-  if (veiled) {
+  if (blockWhileVeiled('診断は、数字を入れてからのお楽しみ🌰')) {
     trackEvent('diagnosis-blocked');
-    const veil = $('chartVeil');
-    const title = veil.querySelector('.veil-title');
-    const original = title.innerHTML;
-    // お預けの間だけ、ぴよもびっくり顔に
-    const veilImg = veil.querySelector('img');
-    const originalImg = veilImg?.src;
-    if (veilImg) veilImg.src = 'assets/piyo-surprised.png';
-    title.textContent = '診断は、数字を入れてからのお楽しみ🌰';
-    veil.classList.add('veil-shake');
-    veil.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    setTimeout(() => {
-      veil.classList.remove('veil-shake');
-      title.innerHTML = original;
-      if (veilImg && originalImg) veilImg.src = originalImg;
-    }, 2600);
     return;
   }
   trackEvent('diagnosis');
