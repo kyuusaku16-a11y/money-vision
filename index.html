@@ -12,6 +12,7 @@
     <meta property="og:url" content="https://kyuusaku16-a11y.github.io/miratame/" />
     <meta property="og:image" content="https://kyuusaku16-a11y.github.io/miratame/og-card.jpg" />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="canonical" href="https://kyuusaku16-a11y.github.io/miratame/" />
     <link rel="icon" href="assets/sprout.png" />
     <!-- PWA: ホーム画面に追加できるように（Service Workerは使わない=キャッシュ事故防止） -->
     <link rel="manifest" href="manifest.webmanifest" />
@@ -62,6 +63,8 @@
     </header>
 
     <main>
+      <!-- 見た目はロゴがタイトルの役割なので、h1は支援技術と検索エンジン向けに非表示で置く -->
+      <h1 class="visually-hidden">資産寿命がわかる無料シミュレーター｜ミラため</h1>
       <!-- 初回訪問だけ表示する診断への入口（シェア経由の来訪者の受け皿） -->
       <div class="diagnosis-hero" id="diagnosisHero" hidden>
         <img class="dh-img" src="assets/piyo-notice.png" alt="" aria-hidden="true" />
@@ -351,6 +354,7 @@
         <p>ミラためは簡易シミュレーションです。投資助言ではなく、将来の成果を保証するものでもありません。</p>
         <p>入力データはこの端末のブラウザ内にのみ保存され、入力内容が外部へ送信されることはありません。</p>
         <p>アクセス数の把握のため、Cookieを使わない匿名のアクセス解析（GoatCounter）を利用しています。</p>
+        <p>性格診断の改善のため、診断結果のタイプ分布のみ匿名で集計しています。入力した金額や年齢が送信されることはありません。</p>
       </details>
       <p>
         <a class="footer-link" href="guide.html">使い方と計算の仕組み・よくある質問</a>／

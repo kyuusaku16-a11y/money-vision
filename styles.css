@@ -8,7 +8,7 @@
   --color-bg: #f7f3ec;
   --color-panel: #ffffff;
   --color-ink: #443c35;
-  --color-muted: #94887b;
+  --color-muted: #746b62; /* 白背景で4.5:1以上（WCAG AA）を確保する */
   --color-line: #ebe3d7;
   --color-good-bg: #eef7e8;
   --color-good-ink: #5f7d4b;
@@ -28,6 +28,19 @@
   --bg-top: #fffaf0;
   --topbar-bg: rgba(255, 255, 255, 0.86);
   --chart-fill-rgb: 232, 160, 170;
+}
+
+/* 画面には出さず、スクリーンリーダーと検索エンジンにだけ読ませるテキスト */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 /* 🌲 フォレストテーマ（男性でも机で開きやすい落ち着き配色。キャラは共通） */
