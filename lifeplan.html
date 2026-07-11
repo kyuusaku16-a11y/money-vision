@@ -53,6 +53,7 @@
       .sheet {
         box-sizing: border-box;
         width: min(210mm, calc(100vw - 16px));
+        aspect-ratio: 210 / 297; /* 画面でもA4の紙姿で見せる（2枚目の中身が少なくても同じ判型） */
         margin: 10px auto 40px;
         padding: 12mm 12mm 9mm;
         background: #fffdf8;
@@ -126,10 +127,16 @@
       .lp-type-name { font-size: 17px; font-weight: 700; color: var(--color-primary-deep, #b0616d); }
       .lp-type-hitokoto { color: #8d786f; }
       .lp-type-body strong { display: inline-block; min-width: 74px; font-size: 10px; color: var(--color-primary-deep, #b0616d); }
-      .lp-axes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px 10px; margin: 10px 0 0; }
-      .lp-axes div { background: #f8f1e8; border-radius: 8px; padding: 5px 10px; }
-      .lp-axes dt { font-size: 9.5px; color: #8d786f; }
-      .lp-axes dd { margin: 1px 0 0; font-size: 11.5px; font-weight: 700; }
+      /* 4軸メーター: アプリ内と同じ「実数と境目」の棒グラフ（境目=中央マーカー） */
+      .lp-axes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 14px; margin: 12px 0 0; }
+      .lp-axes .axis { background: #f8f1e8; border-radius: 10px; padding: 7px 12px 8px; }
+      .lp-axes .axis-head { display: flex; justify-content: space-between; align-items: baseline; }
+      .lp-axes .axis-label { font-size: 11px; font-weight: 700; }
+      .lp-axes .axis-side { font-size: 10px; color: var(--color-primary-deep, #b0616d); font-weight: 700; }
+      .lp-axes .axis-gauge { position: relative; height: 8px; margin: 5px 0 3px; border-radius: 4px; background: #e9dcc9; }
+      .lp-axes .axis-fill { height: 100%; border-radius: 4px; background: var(--color-primary, #e8a0aa); }
+      .lp-axes .axis-mark { position: absolute; left: 50%; top: -2px; bottom: -2px; width: 2px; background: #8d786f; opacity: 0.6; }
+      .lp-axes .axis-note { margin: 0; font-size: 9.5px; color: #8d786f; }
 
       /* データ未入力のとき */
       .lp-empty { max-width: 480px; margin: 60px auto; text-align: center; background: #fffdf8; border-radius: 16px; padding: 36px 24px; box-shadow: 0 10px 26px rgba(107, 81, 74, 0.14); }
@@ -168,8 +175,10 @@
         .sheet.dense .lp-summary p { font-size: 10px; }
         .lp-empty { display: none; }
         .sheet2 { break-before: page; page-break-before: always; margin-top: 0; }
+        .sheet { aspect-ratio: auto; }
         .lp-table tr.milestone td, .lp-table tr.goal td, .lp-table tr.dry td,
-        .lp-assump div, .lp-summary {
+        .lp-assump div, .lp-summary, .lp-report .lead, .lp-type,
+        .lp-axes .axis, .lp-axes .axis-gauge, .lp-axes .axis-fill, .lp-axes .axis-mark {
           -webkit-print-color-adjust: exact;
           print-color-adjust: exact;
         }
@@ -419,11 +428,36 @@
         document.getElementById('axesList').append(
           ...buildAxisDetails(params).map((a) => {
             const box = document.createElement('div');
-            const dt = document.createElement('dt');
-            dt.textContent = `${a.label} — ${a.sideLabel}`;
-            const dd = document.createElement('dd');
-            dd.textContent = a.missing ?? `${a.valueText}（${a.thresholdText}）`;
-            box.append(dt, dd);
+            box.className = 'axis';
+            const head = document.createElement('div');
+            head.className = 'axis-head';
+            const label = document.createElement('span');
+            label.className = 'axis-label';
+            label.textContent = a.label;
+            const side = document.createElement('span');
+            side.className = 'axis-side';
+            side.textContent = a.sideLabel;
+            head.append(label, side);
+            box.appendChild(head);
+            if (a.missing) {
+              const note = document.createElement('p');
+              note.className = 'axis-note';
+              note.textContent = a.missing;
+              box.appendChild(note);
+            } else {
+              const gauge = document.createElement('div');
+              gauge.className = 'axis-gauge';
+              const fill = document.createElement('div');
+              fill.className = 'axis-fill';
+              fill.style.width = `${Math.round(a.ratio * 100)}%`;
+              const mark = document.createElement('span');
+              mark.className = 'axis-mark';
+              gauge.append(fill, mark);
+              const note = document.createElement('p');
+              note.className = 'axis-note';
+              note.textContent = `${a.valueText}（${a.thresholdText}）`;
+              box.append(gauge, note);
+            }
             return box;
           })
         );
