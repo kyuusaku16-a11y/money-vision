@@ -319,8 +319,7 @@ summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color
 .comment.diagnosis {
   grid-column: 1 / -1;
   min-height: 0;
-  grid-template-columns: minmax(0, 1fr) 120px;
-  align-items: start; /* レポートが長いので、ぴよはタイトル横の右上に固定 */
+  display: block; /* ぴよは回り込み: 冒頭だけ避けて、下の章は全幅を使う */
   border: 1.5px solid #9fc8b3;
   background: #f5fbf1;
 }
@@ -346,13 +345,13 @@ summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color
   line-height: 1;
 }
 .comment.diagnosis .comment-visual {
+  float: right;
   width: 120px;
   height: auto;
   border-radius: 0;
   background: transparent;
   font-size: 38px;
-  align-self: start;
-  margin-top: -2px;
+  margin: 0 0 6px 14px;
 }
 .comment-lines { display: flex; flex-direction: column; gap: 8px; }
 .comment-lines p { margin: 0; }

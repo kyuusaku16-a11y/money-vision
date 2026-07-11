@@ -262,7 +262,13 @@ function makeCommentCard(c) {
   } else {
     visual.textContent = c.decorIcon ?? iconForComment(c);
   }
-  card.append(content, visual);
+  if (c.decorFloat) {
+    // 回り込み配置: 冒頭の数行だけが飾りを避け、続きの章は全幅を使える（長いレポート用）
+    content.prepend(visual);
+    card.append(content);
+  } else {
+    card.append(content, visual);
+  }
   return card;
 }
 
@@ -488,7 +494,7 @@ function renderDiagnosis(report, tips) {
   const box = $('diagnosis');
   box.innerHTML = '';
   // 診断カードの挿絵は「芽に水をやるくま」＝資産を育てる世界観
-  box.appendChild(makeCommentCard({ ...report, decorImg: 'assets/piyo-search.png' }));
+  box.appendChild(makeCommentCard({ ...report, decorImg: 'assets/piyo-search.png', decorFloat: true }));
   const reportLines = [...report.lines, ...(report.sections ?? []).flatMap((s) => s.lines)];
   for (const t of tips) {
     // 診断本文に同じ文を借りているヒントは、二重表示になるのでカード側を出さない
