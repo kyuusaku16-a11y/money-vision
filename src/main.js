@@ -34,6 +34,7 @@ import {
   takeMonthlyRecap,
 } from './stamps.js';
 import { UPDATES, NOTE_ARTICLES, COLUMNS } from './updates.js';
+import { pickMonthlyStep } from './steps.js';
 
 // フォーム定義。id は state のキー名と一致。unit は UI⇄state の変換則
 // （man=万円⇄円 / pct100=%⇄比率 / raw=そのまま）。
@@ -989,7 +990,22 @@ function init() {
     $('stampQuote').hidden = false;
   }
   $('stampBtn').addEventListener('click', pressStamp);
-  $('recordBtn').addEventListener('click', openRecordDialog);
+  // 未来チェック: 変わった項目のチップ→ダイアログ、「特に変わっていない」→即完了
+  for (const chip of document.querySelectorAll('.fc-chip[data-field]')) {
+    chip.addEventListener('click', () => openRecordDialog(chip.dataset.field));
+  }
+  $('fcSameBtn').addEventListener('click', completeSameCheck);
+  $('fcStepDoneBtn').addEventListener('click', () => {
+    trackEvent('step-done');
+    $('fcStepText').textContent = 'ナイス一歩！ちいさな行動が、未来をいちばん動かします🌱';
+    $('fcStepLink').hidden = true;
+    $('fcStepActions').hidden = true;
+  });
+  $('fcStepSkipBtn').addEventListener('click', () => {
+    $('fcStepText').textContent = 'OK、今月はお休み。来月また、いっしょに考えましょう🌱';
+    $('fcStepLink').hidden = true;
+    $('fcStepActions').hidden = true;
+  });
   // ライフプラン表も、数字を入れる前はお楽しみに取っておく
   $('lifeplanBtn').addEventListener('click', (e) => {
     if (blockWhileVeiled('ライフプラン表は、数字を入れてからのお楽しみ📄')) {
@@ -999,7 +1015,7 @@ function init() {
       trackEvent('lifeplan');
     }
   });
-  $('recordDoBtn').addEventListener('click', doRecord);
+  $('recordDoBtn').addEventListener('click', applyFutureCheck);
   $('recordCancelBtn').addEventListener('click', () => $('recordDialog').close());
   $('recordDoneBtn').addEventListener('click', () => $('recordDialog').close());
   $('saveScenarioBtn').addEventListener('click', saveCurrentScenario);
@@ -1235,7 +1251,7 @@ function pressStamp() {
   quote.hidden = false;
 }
 
-// 今月の資産チェック: パネルは状況表示だけ。入力→記録→ごほうびはダイアログで完結
+// 未来チェック: パネルは状況表示＋チップ。入力→未来の変化→今月の一歩はダイアログで完結
 function renderTrack() {
   const ymNow = monthOf();
   const hist = loadHistory();
@@ -1248,67 +1264,129 @@ function renderTrack() {
     let text = streak >= 2 ? `✅ 今月はチェックずみ（${streak}ヶ月連続🌱）` : '✅ 今月はチェックずみ';
     if (delta) text += ` — ${delta.text}`;
     status.textContent = text;
-    $('recordBtn').innerHTML = icoUse('i-note') + '記録を見る・直す';
   } else {
     status.textContent = latestRecordBefore(hist, ymNow)
-      ? 'まだ今月のチェックがないよ。1分で終わります'
-      : '月に1回きろくすると、「ふえた・減った」が見えるようになるよ';
-    $('recordBtn').innerHTML = icoUse('i-note') + '今月の資産をチェック';
+      ? 'まだ今月のチェックがないよ。変わったことがあれば教えてね（1分で終わります）'
+      : '月に1回、変わったことだけ教えてね。未来がどう動いたか、答え合わせできます';
   }
 }
 
-function openRecordDialog() {
+// 未来チェックの基準点（ダイアログを開いた時点のKPI。「未来の変化」の比較元）
+let fcBaseline = null;
+const FC_FIELD_IDS = {
+  totalAsset: 'fcTotalAsset',
+  annualIncome: 'fcAnnualIncome',
+  annualExpense: 'fcAnnualExpense',
+  monthlyInvest: 'fcMonthlyInvest',
+};
+
+function captureFcBaseline() {
+  const params = paramsOf(state);
+  const series = projectAssets(params, params.expectedReturn / 100);
+  fcBaseline = { kpis: deriveKpis(series, params), endAge: params.endAge };
+}
+
+function openRecordDialog(focusField = null) {
   trackEvent('record-open');
+  captureFcBaseline();
   const ymNow = monthOf();
   const hist = loadHistory();
   const prev = latestRecordBefore(hist, ymNow);
   const cur = hist.find((s) => s.ym === ymNow);
-  $('recordAsset').value = yenToMan(state.inputs.totalAsset);
+  $('fcTotalAsset').value = yenToMan(state.inputs.totalAsset);
+  $('fcAnnualIncome').value = yenToMan(state.inputs.annualIncome);
+  $('fcAnnualExpense').value = yenToMan(state.inputs.annualExpense);
+  $('fcMonthlyInvest').value = yenToMan(state.inputs.monthlyInvest);
   const note = $('recordPrevNote');
   if (cur?.recordedAsset != null) {
-    note.textContent = `今月の記録: ${yenToMan(cur.recordedAsset)}万円（きろくし直すと上書きされます）`;
+    note.textContent = `今月チェックずみ（資産 ${yenToMan(cur.recordedAsset)}万円）。直すと上書きされます`;
   } else if (prev) {
-    note.textContent = `前回（${Number(prev.ym.split('-')[1])}月）の記録: ${yenToMan(prev.recordedAsset)}万円`;
+    note.textContent = `前回（${Number(prev.ym.split('-')[1])}月）の資産: ${yenToMan(prev.recordedAsset)}万円`;
   } else {
-    note.textContent = 'はじめてのきろく。来月から「ふえた・減った」が見えるようになるよ';
+    note.textContent = 'はじめての未来チェック。来月から答え合わせができるようになるよ';
   }
   $('recordFormZone').hidden = false;
   $('recordResultZone').hidden = true;
   $('recordDialog').showModal();
+  if (focusField && FC_FIELD_IDS[focusField]) $(FC_FIELD_IDS[focusField]).focus();
 }
 
-function doRecord() {
-  const man = Number($('recordAsset').value);
-  if (!Number.isFinite(man) || man < 0) return;
+// 「未来を見る」: 変わった項目を本体に反映して、未来の変化をごほうびに
+function applyFutureCheck() {
+  for (const [field, fcId] of Object.entries(FC_FIELD_IDS)) {
+    const man = Number($(fcId).value);
+    if (Number.isFinite(man) && man >= 0) $(field).value = man;
+  }
+  update();
   trackEvent('record');
+  finishFutureCheck({ changed: true });
+}
+
+// 「特に変わっていない」: 入力なしで完了。それも立派なチェック
+function completeSameCheck() {
+  trackEvent('record-same');
+  captureFcBaseline();
+  finishFutureCheck({ changed: false });
+  $('recordDialog').showModal();
+}
+
+// 更新前後の未来のちがいを、人の言葉で
+function buildFutureDelta(base, now) {
+  const lines = [];
+  const lifeOld = lifeText(base.kpis, base.endAge);
+  const lifeNew = lifeText(now.kpis, now.endAge);
+  if (lifeOld !== lifeNew) lines.push(`資産寿命: ${lifeOld} → ${lifeNew}`);
+  const yo = base.kpis.yearsToTarget;
+  const yn = now.kpis.yearsToTarget;
+  if (yo != null && yn != null && yo !== yn) {
+    lines.push(yn < yo ? `目標到達が${yo - yn}年早くなりました🎉` : `目標到達が${yn - yo}年あとになりました`);
+  } else if (yo == null && yn != null) {
+    lines.push('目標に届く見込みになりました🎉');
+  } else if (yo != null && yn == null) {
+    lines.push('目標が未到達の見込みに。あわてず、プランを眺めてみよう');
+  }
+  const diff = now.kpis.finalAssets - base.kpis.finalAssets;
+  if (Math.abs(diff) >= 100000) {
+    lines.push(`${now.endAge}歳時点の資産が約${fmtMoney(Math.abs(diff))}${diff > 0 ? 'ふえる見込みに' : 'へる見込みに'}`);
+  }
+  if (!lines.length) lines.push('未来は大きく変わらず。安定飛行です🌱');
+  return lines;
+}
+
+function finishFutureCheck({ changed }) {
   const ymNow = monthOf();
   const prev = latestRecordBefore(loadHistory(), ymNow);
-
-  // 「現在の資産」の入力欄にも反映してから再計算（二度手間をなくす）
-  $('totalAsset').value = man;
-  update();
-
   const params = paramsOf(state);
   const series = projectAssets(params, params.expectedReturn / 100);
+  const kpis = deriveKpis(series, params);
+  // 記録は裏で継続（答え合わせ・履歴のため）
   markRecorded(globalThis.localStorage, {
     totalAsset: params.totalAsset,
     projected1y: series[1]?.assets ?? params.totalAsset,
   });
   renderTrack();
 
-  // ごほうび画面: 前回比 → 連続 → 推移
+  const lines = [];
+  let good = true;
+  if (changed) {
+    const deltaLines = buildFutureDelta(fcBaseline, { kpis, endAge: params.endAge });
+    good = !deltaLines.some((l) => l.includes('へる見込み') || l.includes('あとになりました') || l.includes('未到達'));
+    lines.push(...deltaLines);
+  } else {
+    lines.push('変わっていなくても大丈夫。今の計画を確認できました🌱');
+  }
   const hist = loadHistory();
   const cur = hist.find((s) => s.ym === ymNow);
   const delta = buildRecordDelta(prev, cur);
-  const streak = recordStreak(hist, ymNow);
-  $('recordChar').src = delta?.type === 'gentle' ? 'assets/piyo-good.png' : 'assets/piyo-yatta.png';
-  const lines = [delta ? delta.text : 'きろくしたよ！来月もいっしょに見よう🌱'];
+  if (delta) lines.push(delta.text);
   // 答え合わせ: 約1年前に記録した「計画上の1年後資産」があれば実績と見くらべる
   const yearReview = buildYearReview(hist, ymNow);
   if (yearReview) lines.push(yearReview.text);
+  const streak = recordStreak(hist, ymNow);
   if (streak >= 2) lines.push(`${streak}ヶ月連続でチェック中🌱`);
   const stampCount = stampsThisMonth().length;
   if (stampCount >= 5) lines.push(`今月は${stampCount}回も会えたね🌸`);
+  $('recordChar').src = good ? 'assets/piyo-yatta.png' : 'assets/piyo-good.png';
   $('recordResultText').textContent = lines.join('\n');
   const recs = hist.filter((s) => s.recordedAsset != null).slice(-6);
   const trend = $('recordTrend');
@@ -1321,6 +1399,19 @@ function doRecord() {
   } else {
     trend.hidden = true;
   }
+  // 今月の一歩
+  const v = deriveValidation(params);
+  const step = pickMonthlyStep({ params, kpis, surplus: v.surplus, ym: ymNow });
+  $('fcStepText').textContent = step.text;
+  if (step.href) {
+    $('fcStepLinkA').href = step.href;
+    $('fcStepLinkA').textContent = step.linkLabel ?? 'くわしく読む';
+    $('fcStepLink').hidden = false;
+  } else {
+    $('fcStepLink').hidden = true;
+  }
+  $('fcStepActions').hidden = false;
+  $('fcStep').hidden = false;
   $('recordFormZone').hidden = true;
   $('recordResultZone').hidden = false;
 }

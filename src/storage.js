@@ -115,6 +115,7 @@ export function saveState(state, storage = globalThis.localStorage) {
 // 新しいキーを追加したら、ここにも必ず足すこと
 const APP_KEYS = [
   KEY,
+  'money-vision-history',
   'money-vision-stamps',
   'money-vision-stamp-recap',
   'mv-hero-done',
