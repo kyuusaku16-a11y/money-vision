@@ -990,7 +990,7 @@ function init() {
     $('stampQuote').hidden = false;
   }
   $('stampBtn').addEventListener('click', pressStamp);
-  // 未来チェック: 変わった項目のチップ→ダイアログ、「特に変わっていない」→即完了
+  // 今月の答え合わせ: 変わった項目のチップ→ダイアログ、「特に変わっていない」→即完了
   for (const chip of document.querySelectorAll('.fc-chip[data-field]')) {
     chip.addEventListener('click', () => openRecordDialog(chip.dataset.field));
   }
@@ -1251,7 +1251,7 @@ function pressStamp() {
   quote.hidden = false;
 }
 
-// 未来チェック: パネルは状況表示＋チップ。入力→未来の変化→今月の一歩はダイアログで完結
+// 今月の答え合わせ: パネルは状況表示＋チップ。入力→未来の変化→今月の一歩はダイアログで完結
 function renderTrack() {
   const ymNow = monthOf();
   const hist = loadHistory();
@@ -1271,7 +1271,7 @@ function renderTrack() {
   }
 }
 
-// 未来チェックの基準点（ダイアログを開いた時点のKPI。「未来の変化」の比較元）
+// 答え合わせの基準点（ダイアログを開いた時点のKPI。「未来の変化」の比較元）
 let fcBaseline = null;
 const FC_FIELD_IDS = {
   totalAsset: 'fcTotalAsset',
@@ -1303,7 +1303,7 @@ function openRecordDialog(focusField = null) {
   } else if (prev) {
     note.textContent = `前回（${Number(prev.ym.split('-')[1])}月）の資産: ${yenToMan(prev.recordedAsset)}万円`;
   } else {
-    note.textContent = 'はじめての未来チェック。来月から答え合わせができるようになるよ';
+    note.textContent = 'はじめての答え合わせ。来月から「計画どおりか」が見えるようになるよ';
   }
   $('recordFormZone').hidden = false;
   $('recordResultZone').hidden = true;
