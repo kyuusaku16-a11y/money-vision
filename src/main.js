@@ -23,6 +23,7 @@ import {
   monthOf,
 } from './history.js';
 import { seasonalMessage } from './seasonal.js';
+import { initialVeil, applyReveal, applyEdit } from './veil.js';
 import {
   stampsThisMonth,
   stampToday,
@@ -721,7 +722,8 @@ function withScrollAnchor(fn) {
 // 重いコメント欄の作り直し（高さが変わる=チラつきの原因）はドラッグ後に1回だけ
 function update({ withReaction = false, light = false } = {}) {
   state = readForm();
-  saveState(state);
+  // ベール中・サンプル閲覧中はサンプル値を保存しない（本人の結果と混ざるため）
+  if (canPersist) saveState(state);
 
   const params = paramsOf(state);
   const mainSeries = projectAssets(params, params.expectedReturn / 100);
@@ -763,7 +765,7 @@ function update({ withReaction = false, light = false } = {}) {
   if (!light) {
     // 変化リアクションはドラッグ前→後の比較にしたいので、途中経過では更新しない
     prevKpis = kpis;
-    recordSnapshot(kpis); // 今月分のスナップショットを常に最新へ（来月の「前回とくらべて」用）
+    if (canPersist) recordSnapshot(kpis); // 今月分のスナップショットを最新へ（来月の「前回とくらべて」用）
   }
   syncSliders();
 
@@ -859,8 +861,12 @@ function init() {
   // 保存データが無い＝初めての訪問。診断バナーを見せる判定は loadState より先に取る
   let firstVisit = false;
   try {
-    const isNewVisitor = !localStorage.getItem('money-vision-state');
-    veiled = isNewVisitor && !localStorage.getItem('mv-revealed');
+    const v = initialVeil({
+      hasSavedState: !!localStorage.getItem('money-vision-state'),
+      revealed: !!localStorage.getItem('mv-revealed'),
+    });
+    veiled = v.veiled;
+    canPersist = v.canPersist;
     // 診断バナーは「自分の数字で結果をめくった後」のごほうび
     // （数字を入れる前に診断すると全員同じタイプになり冷めるため）
     firstVisit = !veiled && !!localStorage.getItem('mv-revealed') && !localStorage.getItem('mv-hero-done');
@@ -880,6 +886,7 @@ function init() {
     $(f.id).addEventListener('input', (e) => {
       anchorEl = e.target;
       noteVeilEdit(f.id);
+      noteOwnEdit();
       onType();
     });
 
@@ -891,6 +898,7 @@ function init() {
     $(`${id}Slider`).addEventListener('input', (e) => {
       anchorEl = e.target;
       noteVeilEdit(id);
+      noteOwnEdit();
       $(id).value = toUi(f, Number(e.target.value));
       update({ light: true });
       heavyUpdate();
@@ -904,11 +912,15 @@ function init() {
 
   renderEventPresets();
   $('addChild').addEventListener('click', () => {
+    noteOwnEdit();
     state.children.push({ age: 5 });
     renderChildren();
     update();
   });
-  $('addEvent').addEventListener('click', () => addEventRow());
+  $('addEvent').addEventListener('click', () => {
+    noteOwnEdit();
+    addEventRow();
+  });
   $('shareBtn').addEventListener('click', openShareDialog);
   $('jumpFormBtn').addEventListener('click', () => {
     trackEvent('jump-form');
@@ -1028,12 +1040,45 @@ function init() {
   $('recordDoBtn').addEventListener('click', applyFutureCheck);
   $('recordCancelBtn').addEventListener('click', () => $('recordDialog').close());
   $('recordDoneBtn').addEventListener('click', () => $('recordDialog').close());
-  // プランブック需要調査: クリック数だけ匿名で数える（1端末1回）
-  $('planbookBtn').addEventListener('click', () => {
-    trackEvent('planbook-want');
+  // プランブック需要調査: 票数だけ匿名で数える。
+  // 1端末1回にするため投票済みをlocalStorageへ保存（リロード再投票を防ぐ）。
+  // 判断は生の票数でなく planbook-want ÷ planbook-view（表示に対する投票率）で見る
+  const markPlanbookVoted = () => {
     $('planbookBtn').disabled = true;
     $('planbookThanks').hidden = false;
+  };
+  try {
+    if (localStorage.getItem('mv-planbook-voted')) markPlanbookVoted();
+  } catch {
+    /* ignore */
+  }
+  $('planbookBtn').addEventListener('click', () => {
+    trackEvent('planbook-want');
+    try {
+      localStorage.setItem('mv-planbook-voted', '1');
+    } catch {
+      /* ignore */
+    }
+    markPlanbookVoted();
   });
+  // planbook-view: 調査カードが実際に画面へ入った端末数（1端末1回）。投票率の分母
+  try {
+    if (!localStorage.getItem('mv-planbook-seen') && 'IntersectionObserver' in window) {
+      const io = new IntersectionObserver((entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        trackEvent('planbook-view');
+        try {
+          localStorage.setItem('mv-planbook-seen', '1');
+        } catch {
+          /* ignore */
+        }
+      }, { threshold: 0.5 });
+      io.observe($('planbookProbe'));
+    }
+  } catch {
+    /* ignore */
+  }
   $('saveScenarioBtn').addEventListener('click', saveCurrentScenario);
   renderScenarios();
 
@@ -1138,7 +1183,26 @@ function setTheme(id) {
 
 // 初回訪問のベール（結果を自分でめくる演出）
 let veiled = false;
+let canPersist = true;
 const veilEdited = new Set();
+
+// veil.js の遷移結果を反映し、必要なら mv-revealed を書く
+function setVeilState(next) {
+  veiled = next.veiled;
+  canPersist = next.canPersist;
+  if (next.markRevealed) {
+    try {
+      localStorage.setItem('mv-revealed', '1');
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+// サンプル閲覧後に自分で入力し始めたら、そこから本人の利用として保存を開始
+function noteOwnEdit() {
+  if (!veiled && !canPersist) setVeilState(applyEdit({ veiled, canPersist }));
+}
 
 function noteVeilEdit(fieldId) {
   if (!veiled) return;
@@ -1151,12 +1215,8 @@ function noteVeilEdit(fieldId) {
 
 function revealResults(fromSample = false) {
   if (!veiled) return;
-  veiled = false;
-  try {
-    localStorage.setItem('mv-revealed', '1');
-  } catch {
-    /* ignore */
-  }
+  // サンプル閲覧では mv-revealed・入力値・履歴を保存しない（再訪時はベールに戻る）
+  setVeilState(applyReveal({ veiled, canPersist }, fromSample));
   trackEvent(fromSample ? 'veil-sample' : 'veil-reveal');
   const veil = $('chartVeil');
   veil.classList.add('lifting');

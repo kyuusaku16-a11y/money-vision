@@ -122,6 +122,8 @@ const APP_KEYS = [
   'mv-visited',
   'mv-pwa-hint-done',
   'mv-revealed',
+  'mv-planbook-voted',
+  'mv-planbook-seen',
 ];
 
 export function clearAllData(storage = globalThis.localStorage) {
