@@ -66,9 +66,9 @@ html[data-theme="forest"] {
 html { overflow-anchor: none; }
 /* 固定トップバーの高さぶん、アンカー・スクロール移動の着地点を下げる */
 [id] { scroll-margin-top: 88px; }
-/* タグライン表示中（701px以上）はヘッダーが約95pxになるため余白を追従 */
+/* ロックアップ版ロゴ表示中（701px以上）はヘッダーが約106pxになるため余白を追従 */
 @media (min-width: 701px) {
-  [id] { scroll-margin-top: 102px; }
+  [id] { scroll-margin-top: 114px; }
 }
 body {
   margin: 0;
@@ -99,32 +99,17 @@ h1, h2, h3 { text-wrap: balance; }
 .topbar button { white-space: nowrap; }
 .tb-brand {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 1px;
   flex: none;
   text-decoration: none;
 }
-/* 完成ロゴをサイトの顔として表示。透過PNGの比率を崩さない */
+/* 完成ロゴ（「資産寿命シミュレーター」入りロックアップ版）をサイトの顔として表示。
+   透過PNGの比率を崩さない */
 .tb-brand .tb-logo {
   display: block;
-  width: 165px;
+  width: 185px;
   height: auto;
   object-fit: contain;
-}
-/* ロゴ直下のカテゴリー補足。ロゴと一組のロックアップとして扱う
-   （keisan.site等のツールサイト定石。書式はベール画面のロゴ下タグラインと同じ系統） */
-.tb-tagline {
-  font-family: var(--font-display);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--color-muted);
-  line-height: 1;
-}
-/* ロゴが縮む狭い画面では畳む（縦積みなので幅は圧迫しないが、高さを節約） */
-@media (max-width: 700px) {
-  .tb-tagline { display: none; }
 }
 .tb-nav { display: flex; align-items: center; gap: 4px; margin-left: auto; }
 .tb-nav a,
@@ -381,7 +366,7 @@ summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color
 /* 2カラムのPCでは入力フォームを固定サイドバーに（ダッシュボードの操作盤）。
    可動範囲は親の .form-col 内に限られる */
 @media (min-width: 1200px) {
-  .panel.form { position: sticky; top: 84px; max-height: calc(100vh - 104px); overflow-y: auto; }
+  .panel.form { position: sticky; top: 94px; max-height: calc(100vh - 114px); overflow-y: auto; }
 }
 .kpi-icon { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-size: 20px; }
 .icon-green { background: #e7f3df; }
