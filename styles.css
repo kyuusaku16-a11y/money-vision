@@ -167,11 +167,13 @@ h1, h2, h3 { text-wrap: balance; }
 }
 
 main { display: flex; flex-direction: column; gap: 20px; padding: 20px 32px 40px; max-width: 1280px; margin: 0 auto; }
+.dash { display: flex; flex-direction: column; gap: 20px; }
 .dash > * { min-width: 0; }
-/* PC: 入力（左）とグラフ（右）を同時に見ながら操作できる2カラム。
+/* 広いPCのみ: 入力（左）とグラフ（右）を同時に見ながら操作できる2カラム。
    .dash を display:contents で溶かし、cockpit（.results）ごと main のグリッドに乗せる。
-   DOMはスマホの表示順（グラフ→フォーム）のままなので、940px以下は縦積みで従来どおり */
-@media (min-width: 941px) {
+   DOMはスマホの表示順（グラフ→フォーム）のままなので、1199px以下は縦積みで従来どおり。
+   しきい値1200pxはグラフ幅を約700px以上に保つための下限（グラフが主役の設計を守る） */
+@media (min-width: 1200px) {
   main { display: grid; grid-template-columns: 340px minmax(0, 1fr); align-items: start; }
   .dash { display: contents; }
   /* 行はすべて明示する。自動配置に任せると、明示行のすき間に後続セクションが
@@ -286,12 +288,34 @@ summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color
 .results-more > * { min-width: 0; }
 /* ===== コックピット: 左に問いと答え、右にグラフ（PC） ===== */
 .cockpit { padding: 24px 26px 20px; display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 8px 30px; align-items: start; }
-/* 2カラム化で右カラムが狭い中間幅では、コックピット内をKPI上・グラフ下の縦積みに */
-@media (min-width: 941px) and (max-width: 1240px) {
-  .cockpit { grid-template-columns: 1fr; gap: 12px; }
-}
 .cockpit-side { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .cockpit-main { min-width: 0; }
+/* 2カラム時はコックピット内を「KPI横一列の帯＋その下に全幅グラフ」へ組み替え、
+   グラフ幅を1カラム時とほぼ同じに保つ（入力改善のためにグラフを削らない） */
+@media (min-width: 1200px) {
+  .cockpit { grid-template-columns: 1fr; gap: 14px; }
+  .cockpit-side { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 12px 24px; }
+  .cockpit-side .view-toggle { width: 100%; }
+  .cockpit-side .answer-hero { flex: 0 0 auto; }
+  .cockpit-side .kpis { flex: 1 1 0; min-width: 0; flex-direction: row; }
+  /* 帯の中の各KPIは「アイコン｜ラベル上・数字下」のカード型（数字を仕切り線に押し付けない） */
+  .cockpit-side .kpi {
+    flex: 1;
+    min-width: 0;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: 8px;
+    row-gap: 2px;
+    align-items: center;
+    border-top: none;
+    border-left: 1px solid var(--color-line);
+    padding: 2px 8px 2px 14px;
+  }
+  .cockpit-side .kpi .kpi-icon { grid-row: 1 / span 2; width: 30px; height: 30px; }
+  .cockpit-side .kpi .kpi-icon img { width: 22px; height: 22px; }
+  .cockpit-side .kpi .kpi-label { font-size: 11px; }
+  .cockpit-side .kpi .kpi-value { text-align: left; font-size: 15px; }
+}
 @media (max-width: 940px) {
   .cockpit { grid-template-columns: 1fr; padding: 18px 16px 14px; }
 }
@@ -332,8 +356,8 @@ summary { cursor: pointer; font-size: 14px; font-weight: 600; color: var(--color
 }
 .zone-label::after { content: ''; flex: 1; height: 1px; background: var(--color-line); }
 
-/* PCでは入力フォームを固定サイドバーに（ダッシュボードの操作盤） */
-@media (min-width: 941px) {
+/* 2カラムのPCでは入力フォームを固定サイドバーに（ダッシュボードの操作盤） */
+@media (min-width: 1200px) {
   .panel.form { position: sticky; top: 72px; max-height: calc(100vh - 92px); overflow-y: auto; }
 }
 .kpi-icon { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; font-size: 20px; }
