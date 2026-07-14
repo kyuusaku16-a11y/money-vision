@@ -555,6 +555,7 @@ function renderChildren() {
 
     const age = document.createElement('input');
     age.type = 'number';
+    age.inputMode = 'numeric';
     age.min = '0';
     age.max = '30';
     age.value = child.age;
@@ -649,6 +650,7 @@ function renderEvents() {
 
     const age = document.createElement('input');
     age.type = 'number';
+    age.inputMode = 'numeric';
     age.min = '18';
     age.max = '110';
     age.value = ev.age;
@@ -662,6 +664,7 @@ function renderEvents() {
 
     const amount = document.createElement('input');
     amount.type = 'number';
+    amount.inputMode = 'numeric';
     amount.min = '0';
     amount.step = '10';
     amount.value = yenToMan(ev.amount);
@@ -905,6 +908,29 @@ function init() {
     });
   }
 
+  // 数値入力の使い勝手: フォーカスで全選択（既存値の打ち直しを一手に）。
+  // ホイールで値が勝手に変わる事故は、スクロール開始時にフォーカスを外して防ぐ。
+  // 後から増える行（子ども・イベント）にも効くよう、document委譲で1回だけ登録する
+  let selectAllPending = null; // クリック由来のmouseupがselect()を解除するため、直後の1回だけ無効化する
+  document.addEventListener('focusin', (e) => {
+    if (e.target instanceof HTMLInputElement && e.target.type === 'number') {
+      e.target.select();
+      selectAllPending = e.target;
+    }
+  });
+  document.addEventListener('mouseup', (e) => {
+    if (selectAllPending && e.target === selectAllPending) e.preventDefault();
+    selectAllPending = null;
+  });
+  document.addEventListener(
+    'wheel',
+    (e) => {
+      const t = e.target;
+      if (t instanceof HTMLInputElement && t.type === 'number' && document.activeElement === t) t.blur();
+    },
+    { passive: true },
+  );
+
   $('defaultsNote').addEventListener('click', () => {
     $('advanced').open = true;
     $('pensionAnnual').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -931,6 +957,7 @@ function init() {
     document.querySelector('.panel.form').scrollIntoView({ behavior: 'smooth' });
   });
   $('veilRevealBtn').addEventListener('click', () => revealResults(false));
+  $('formRevealBtn').addEventListener('click', () => revealResults(false));
   $('veilSampleBtn').addEventListener('click', () => revealResults(true));
   if (firstVisit) $('diagnosisHero').hidden = false;
   $('heroDiagnoseBtn').addEventListener('click', () => {
@@ -1210,6 +1237,8 @@ function noteVeilEdit(fieldId) {
   if (veilEdited.size >= 2) {
     $('veilJumpBtn').hidden = true;
     $('veilRevealBtn').hidden = false;
+    // スマホでは入力欄がベールより下にあるため、いま入力している手元にも同じボタンを出す
+    $('formRevealBtn').hidden = false;
   }
 }
 
@@ -1218,6 +1247,7 @@ function revealResults(fromSample = false) {
   // サンプル閲覧では mv-revealed・入力値・履歴を保存しない（再訪時はベールに戻る）
   setVeilState(applyReveal({ veiled, canPersist }, fromSample));
   trackEvent(fromSample ? 'veil-sample' : 'veil-reveal');
+  $('formRevealBtn').hidden = true;
   const veil = $('chartVeil');
   veil.classList.add('lifting');
   setTimeout(() => {

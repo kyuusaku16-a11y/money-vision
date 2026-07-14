@@ -192,8 +192,47 @@ h2 .ico { margin-right: 8px; }
 .form h3 { font-size: 13px; color: var(--color-muted); margin: 16px 0 8px; }
 .form label { display: flex; flex-direction: column; font-size: 13px; color: var(--color-muted); margin: 12px 0 4px; gap: 4px; }
 .form label.sub { margin: 4px 0 4px 14px; font-size: 12px; }
-.form input[type="number"], .form select { padding: 8px 10px; border: 1px solid var(--color-line); border-radius: 10px; font-size: 15px; color: var(--color-ink); background: #fffdf9; font-family: var(--font-body); }
+/* 16px未満だとiOS Safariがフォーカス時に画面をズームしてしまうため、16pxを下限にする */
+.form input[type="number"], .form select { padding: 8px 10px; border: 1px solid var(--color-line); border-radius: 10px; font-size: 16px; color: var(--color-ink); background: #fffdf9; font-family: var(--font-body); }
+.form input[type="number"] { text-align: right; appearance: textfield; -moz-appearance: textfield; }
+/* 上下スピナーは単位表示と重なるうえ、微調整はスライダーの役目なので消す */
+.form input[type="number"]::-webkit-outer-spin-button,
+.form input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
 .form input[type="number"]:focus, .form select:focus { outline: 2px solid var(--color-primary); border-color: transparent; }
+
+/* 入力欄の右端に単位を固定表示（label の data-unit 属性から描く。要素は増やさない） */
+.form label[data-unit] { position: relative; }
+.form label[data-unit]::after {
+  content: attr(data-unit);
+  position: absolute;
+  right: 11px;
+  bottom: 10px;
+  font-size: 12px;
+  color: var(--color-muted);
+  pointer-events: none;
+}
+.form label[data-unit] input[type="number"] { padding-right: 44px; }
+
+/* 初回のみ表示: 入力を終えたその場で結果へ（ベールの「結果を見る」と同じ動作） */
+.form-reveal[hidden] { display: none; }
+.form-reveal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin: 14px 0 2px;
+  border: none;
+  background: var(--color-primary-deep);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 700;
+  padding: 12px 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
 .field-note { margin: 2px 0 0; font-size: 11px; color: var(--color-muted); }
 
 /* スライダー（§5）: 数値入力と併存 */
