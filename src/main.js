@@ -2,7 +2,7 @@ import { projectAssets, deriveKpis, educationCostAt, monthsToTarget, nearWindowY
 import { buildComments } from './comments.js';
 import { loadState, saveState, normalizeState, addScenario, removeScenario, clearAllData, DEFAULT_ADVANCED } from './storage.js';
 import { renderChart } from './chart.js';
-import { fmtMoney, manToYen, yenToMan } from './format.js';
+import { fmtMoney, manToYen, yenToMan, normalizeNumInput, formatNumInput } from './format.js';
 import { deriveValidation, clampInvestedAsset } from './validation.js';
 import { buildReaction } from './reactions.js';
 import { buildSchedule } from './schedule.js';
@@ -76,8 +76,10 @@ const sectionOf = (s, f) => (f.section === 'inputs' ? s.inputs : s.advanced);
 let timelineOpen = false;
 
 function toState(field, uiValue) {
-  const v = Number(uiValue);
-  if (uiValue === '' || Number.isNaN(v)) return null;
+  // カンマ・全角数字を受け付ける（type="text" 化に伴い解釈はここで一元化）
+  const raw = normalizeNumInput(uiValue);
+  const v = Number(raw);
+  if (raw === '' || Number.isNaN(v)) return null;
   if (field.unit === 'man') return manToYen(v);
   if (field.unit === 'pct100') return v / 100;
   return v;
@@ -115,14 +117,14 @@ function syncInvestClampUi() {
   }
   // 入力中の欄を書き換えると打ちにくいので、フォーカスが無いときだけ値を同期する
   if (document.activeElement?.id !== 'investedAsset') {
-    $('investedAsset').value = yenToMan(state.inputs.investedAsset);
+    $('investedAsset').value = formatNumInput(yenToMan(state.inputs.investedAsset));
   }
   note.textContent = `現在の資産を超えていたため、投資分は${yenToMan(state.inputs.investedAsset)}万円（資産の全額）として計算しています`;
   note.hidden = false;
 }
 
 function writeForm() {
-  for (const f of FIELDS) $(f.id).value = toUi(f, sectionOf(state, f)[f.id]);
+  for (const f of FIELDS) $(f.id).value = formatNumInput(toUi(f, sectionOf(state, f)[f.id]));
   syncSliders();
 }
 
@@ -554,13 +556,11 @@ function renderChildren() {
     });
 
     const age = document.createElement('input');
-    age.type = 'number';
+    age.type = 'text';
     age.inputMode = 'numeric';
-    age.min = '0';
-    age.max = '30';
     age.value = child.age;
     age.addEventListener('input', () => {
-      child.age = Math.max(0, Number(age.value) || 0);
+      child.age = Math.max(0, Number(normalizeNumInput(age.value)) || 0);
       update();
     });
 
@@ -649,13 +649,11 @@ function renderEvents() {
     });
 
     const age = document.createElement('input');
-    age.type = 'number';
+    age.type = 'text';
     age.inputMode = 'numeric';
-    age.min = '18';
-    age.max = '110';
     age.value = ev.age;
     age.addEventListener('input', () => {
-      ev.age = Math.max(0, Number(age.value) || 0);
+      ev.age = Math.max(0, Number(normalizeNumInput(age.value)) || 0);
       update();
     });
 
@@ -663,13 +661,11 @@ function renderEvents() {
     ageUnit.textContent = '歳';
 
     const amount = document.createElement('input');
-    amount.type = 'number';
+    amount.type = 'text';
     amount.inputMode = 'numeric';
-    amount.min = '0';
-    amount.step = '10';
-    amount.value = yenToMan(ev.amount);
+    amount.value = formatNumInput(yenToMan(ev.amount));
     amount.addEventListener('input', () => {
-      ev.amount = manToYen(Math.max(0, Number(amount.value) || 0));
+      ev.amount = manToYen(Math.max(0, Number(normalizeNumInput(amount.value)) || 0));
       update();
     });
 
@@ -881,6 +877,9 @@ function init() {
   state.events ??= [];
   state.children ??= [];
   writeForm();
+  // 投資の折りたたみ: すでに投資の数字が入っている人には開いて見せる。
+  // 初回（ベール中）はサンプル値に投資が含まれていても閉じたまま＝見た目4項目を守る
+  $('investing').open = !veiled && (state.inputs.investedAsset > 0 || state.inputs.monthlyInvest > 0);
   renderEvents();
   renderChildren();
 
@@ -902,18 +901,19 @@ function init() {
       anchorEl = e.target;
       noteVeilEdit(id);
       noteOwnEdit();
-      $(id).value = toUi(f, Number(e.target.value));
+      $(id).value = formatNumInput(toUi(f, Number(e.target.value)));
       update({ light: true });
       heavyUpdate();
     });
   }
 
   // 数値入力の使い勝手: フォーカスで全選択（既存値の打ち直しを一手に）。
-  // ホイールで値が勝手に変わる事故は、スクロール開始時にフォーカスを外して防ぐ。
-  // 後から増える行（子ども・イベント）にも効くよう、document委譲で1回だけ登録する
+  // 後から増える行（子ども・イベント）にも効くよう、document委譲で1回だけ登録する。
+  // 数値欄の目印は inputmode 属性（type="text" 化後の共通マーカー）
+  const isNumField = (t) => t instanceof HTMLInputElement && t.hasAttribute('inputmode');
   let selectAllPending = null; // クリック由来のmouseupがselect()を解除するため、直後の1回だけ無効化する
   document.addEventListener('focusin', (e) => {
-    if (e.target instanceof HTMLInputElement && e.target.type === 'number') {
+    if (isNumField(e.target)) {
       e.target.select();
       selectAllPending = e.target;
     }
@@ -922,14 +922,14 @@ function init() {
     if (selectAllPending && e.target === selectAllPending) e.preventDefault();
     selectAllPending = null;
   });
-  document.addEventListener(
-    'wheel',
-    (e) => {
-      const t = e.target;
-      if (t instanceof HTMLInputElement && t.type === 'number' && document.activeElement === t) t.blur();
-    },
-    { passive: true },
-  );
+  // 欄を離れたら表示をカンマ区切りに整える（解釈できない途中入力はそのまま残す）
+  document.addEventListener('focusout', (e) => {
+    const t = e.target;
+    if (!isNumField(t)) return;
+    const raw = normalizeNumInput(t.value);
+    if (raw === '' || Number.isNaN(Number(raw))) return;
+    t.value = formatNumInput(Number(raw));
+  });
 
   $('defaultsNote').addEventListener('click', () => {
     $('advanced').open = true;
@@ -1306,7 +1306,7 @@ function setViewMode(mode) {
 
 function applyGoalPreset(preset) {
   trackEvent(`goal-${preset.id}`);
-  $('targetAmount').value = preset.man;
+  $('targetAmount').value = formatNumInput(preset.man);
   setViewMode('near');
 }
 
@@ -1399,10 +1399,10 @@ function openRecordDialog(focusField = null) {
   const hist = loadHistory();
   const prev = latestRecordBefore(hist, ymNow);
   const cur = hist.find((s) => s.ym === ymNow);
-  $('fcTotalAsset').value = yenToMan(state.inputs.totalAsset);
-  $('fcAnnualIncome').value = yenToMan(state.inputs.annualIncome);
-  $('fcAnnualExpense').value = yenToMan(state.inputs.annualExpense);
-  $('fcMonthlyInvest').value = yenToMan(state.inputs.monthlyInvest);
+  $('fcTotalAsset').value = formatNumInput(yenToMan(state.inputs.totalAsset));
+  $('fcAnnualIncome').value = formatNumInput(yenToMan(state.inputs.annualIncome));
+  $('fcAnnualExpense').value = formatNumInput(yenToMan(state.inputs.annualExpense));
+  $('fcMonthlyInvest').value = formatNumInput(yenToMan(state.inputs.monthlyInvest));
   const note = $('recordPrevNote');
   if (cur?.recordedAsset != null) {
     note.textContent = `今月チェックずみ（資産 ${yenToMan(cur.recordedAsset)}万円）。直すと上書きされます`;
@@ -1420,8 +1420,8 @@ function openRecordDialog(focusField = null) {
 // 「未来を見る」: 変わった項目を本体に反映して、未来の変化をごほうびに
 function applyFutureCheck() {
   for (const [field, fcId] of Object.entries(FC_FIELD_IDS)) {
-    const man = Number($(fcId).value);
-    if (Number.isFinite(man) && man >= 0) $(field).value = man;
+    const man = Number(normalizeNumInput($(fcId).value));
+    if (Number.isFinite(man) && man >= 0) $(field).value = formatNumInput(man);
   }
   update();
   trackEvent('record');

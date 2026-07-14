@@ -15,3 +15,22 @@ export function manToYen(man) {
 export function yenToMan(yen) {
   return Math.round((yen / 10000) * 10) / 10;
 }
+
+// 入力欄の文字列を Number() に渡せる形へ正規化する。
+// 全角数字・全角小数点は打ち間違いでなく環境差（IME）なので受け入れ、
+// カンマと空白は「読みやすく書いただけ」とみなして取り除く。
+// 数字にならない文字はあえて残す（上流で NaN → 入力途中として無視される）。
+export function normalizeNumInput(str) {
+  return String(str)
+    .replace(/[０-９]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0xfee0))
+    .replace(/．/g, '.')
+    .replace(/[,，]/g, '')
+    .replace(/[\s　]/g, '');
+}
+
+// 入力欄に書き戻すときの表示。整数部だけカンマ区切りにし、小数は丸めない。
+export function formatNumInput(n) {
+  const [int, frac] = String(n).split('.');
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  return frac != null ? `${grouped}.${frac}` : grouped;
+}

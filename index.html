@@ -77,16 +77,16 @@
           <div id="recordFormZone">
             <p class="field-note">変わったところだけ直せばOK。ほかはそのままで大丈夫</p>
             <label class="record-label">資産（万円）
-              <input type="number" inputmode="numeric" id="fcTotalAsset" min="0" step="10" />
+              <input type="text" inputmode="numeric" id="fcTotalAsset" />
             </label>
             <label class="record-label">手取り年収（万円）
-              <input type="number" inputmode="numeric" id="fcAnnualIncome" min="0" step="10" />
+              <input type="text" inputmode="numeric" id="fcAnnualIncome" />
             </label>
             <label class="record-label">年間支出（万円）
-              <input type="number" inputmode="numeric" id="fcAnnualExpense" min="0" step="10" />
+              <input type="text" inputmode="numeric" id="fcAnnualExpense" />
             </label>
             <label class="record-label">毎月の積立（万円）
-              <input type="number" inputmode="decimal" id="fcMonthlyInvest" min="0" step="0.5" />
+              <input type="text" inputmode="decimal" id="fcMonthlyInvest" />
             </label>
             <p class="field-note" id="recordPrevNote"></p>
             <div class="share-dialog-actions">
@@ -201,24 +201,29 @@
       <section class="panel form">
         <h2>あなたの数字</h2>
 
-        <label data-unit="歳">現在の年齢（歳）<input type="number" inputmode="numeric" id="currentAge" min="18" max="80" /></label>
+        <label data-unit="歳">現在の年齢（歳）<input type="text" inputmode="numeric" id="currentAge" /></label>
 
-        <label data-unit="万円">現在の資産（万円）<input type="number" inputmode="numeric" id="totalAsset" min="0" step="10" /></label>
-        <label class="sub" data-unit="万円">うち投資に回している額（万円）<input type="number" inputmode="numeric" id="investedAsset" min="0" step="10" /></label>
-        <p class="field-note" id="assetClampNote" hidden></p>
+        <label data-unit="万円">現在の資産（万円）<input type="text" inputmode="numeric" id="totalAsset" /></label>
 
-        <label data-unit="万円">毎月の投資額（万円）<input type="number" inputmode="decimal" id="monthlyInvest" min="0" step="0.5" /></label>
-        <input type="range" id="monthlyInvestSlider" min="0" max="300000" step="5000" aria-label="毎月の投資額" />
-        <p class="field-note">※現金から投資へ移す金額です（収入とは別に増えるお金ではありません）</p>
-
-        <label data-unit="万円">手取り年収・ボーナス込み（万円）<input type="number" inputmode="numeric" id="annualIncome" min="0" step="10" /></label>
+        <label data-unit="万円">手取り年収・ボーナス込み（万円）<input type="text" inputmode="numeric" id="annualIncome" /></label>
         <input type="range" id="annualIncomeSlider" min="2000000" max="15000000" step="100000" aria-label="手取り年収" />
         <p id="incomeNotice" class="validation" hidden aria-live="polite"></p>
 
-        <label data-unit="万円">年間支出・現役（万円）<input type="number" inputmode="numeric" id="annualExpense" min="0" step="10" /></label>
+        <label data-unit="万円">年間支出・現役（万円）<input type="text" inputmode="numeric" id="annualExpense" /></label>
         <input type="range" id="annualExpenseSlider" min="1000000" max="8000000" step="100000" aria-label="年間支出" />
 
-        <label data-unit="万円">目標金額（万円）<input type="number" inputmode="numeric" id="targetAmount" min="0" step="100" /></label>
+        <!-- 投資項目は「している人だけ」の折りたたみ。収入・支出を見てから積立を考える順番に合わせる。
+             初回のベール中は閉じたまま（説明の「年齢・資産・収入・支出を入れるだけ」と画面を一致させる） -->
+        <details id="investing">
+          <summary>投資のこと<span class="summary-note">積立していない人は、このままでOK</span></summary>
+          <label data-unit="万円">現在の資産のうち、投資に回している額（万円）<input type="text" inputmode="numeric" id="investedAsset" /></label>
+          <p class="field-note" id="assetClampNote" hidden></p>
+          <label data-unit="万円">毎月の投資額（万円）<input type="text" inputmode="decimal" id="monthlyInvest" /></label>
+          <input type="range" id="monthlyInvestSlider" min="0" max="300000" step="5000" aria-label="毎月の投資額" />
+          <p class="field-note">※現金から投資へ移す金額です（収入とは別に増えるお金ではありません）</p>
+        </details>
+
+        <label data-unit="万円">目標金額（万円）<input type="text" inputmode="numeric" id="targetAmount" /></label>
         <div class="goal-presets" id="goalPresets"></div>
         <p class="field-note">※ちかい目標を選ぶと、目標に合わせた5〜10年のグラフに切り替わります</p>
 
@@ -230,18 +235,18 @@
         <details id="advanced">
           <summary>詳しく設定<span id="advancedSummary" class="summary-note"></span></summary>
           <h3>運用のこと</h3>
-          <label data-unit="％">想定利回り（％）<input type="number" inputmode="decimal" id="expectedReturn" min="0" max="20" step="0.5" /></label>
+          <label data-unit="％">想定利回り（％）<input type="text" inputmode="decimal" id="expectedReturn" /></label>
           <p class="field-note">目安：弱気2%・ふつう5%・強気8%（インフレ分を引いたあとの利回り）</p>
           <h3>老後のこと</h3>
-          <label data-unit="歳">退職年齢・積立終了（歳）<input type="number" inputmode="numeric" id="retireAge" min="50" max="75" /></label>
+          <label data-unit="歳">退職年齢・積立終了（歳）<input type="text" inputmode="numeric" id="retireAge" /></label>
           <input type="range" id="retireAgeSlider" min="50" max="75" step="1" aria-label="退職年齢" />
-          <label data-unit="万円">年金額（万円/年）<input type="number" inputmode="numeric" id="pensionAnnual" min="0" step="10" /></label>
-          <label data-unit="歳">年金開始年齢（歳）<input type="number" inputmode="numeric" id="pensionStartAge" min="60" max="75" /></label>
-          <label data-unit="万円">退職金（万円）<input type="number" inputmode="numeric" id="retirementBonus" min="0" step="100" /></label>
-          <label data-unit="％">老後の支出（現役の％）<input type="number" inputmode="numeric" id="retiredExpenseRatio" min="30" max="100" step="5" /></label>
+          <label data-unit="万円">年金額（万円/年）<input type="text" inputmode="numeric" id="pensionAnnual" /></label>
+          <label data-unit="歳">年金開始年齢（歳）<input type="text" inputmode="numeric" id="pensionStartAge" /></label>
+          <label data-unit="万円">退職金（万円）<input type="text" inputmode="numeric" id="retirementBonus" /></label>
+          <label data-unit="％">老後の支出（現役の％）<input type="text" inputmode="numeric" id="retiredExpenseRatio" /></label>
           <h3>住まいのこと</h3>
-          <label data-unit="万円">月々のローン返済（万円）<input type="number" inputmode="numeric" id="loanMonthly" min="0" step="1" /></label>
-          <label data-unit="歳">完済年齢（歳）<input type="number" inputmode="numeric" id="loanEndAge" min="30" max="90" /></label>
+          <label data-unit="万円">月々のローン返済（万円）<input type="text" inputmode="numeric" id="loanMonthly" /></label>
+          <label data-unit="歳">完済年齢（歳）<input type="text" inputmode="numeric" id="loanEndAge" /></label>
           <p class="field-note">※返済額は「年間支出」に含めて入力してください。完済後は自動で軽くなります</p>
           <p class="field-note">※賃貸の方は0のままでOK（家賃はずっと続く支出として扱われます）</p>
           <h3>シミュレーション設定</h3>
