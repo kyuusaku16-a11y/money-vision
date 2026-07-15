@@ -60,16 +60,6 @@
     <main>
       <!-- 見た目はロゴがタイトルの役割なので、h1は支援技術と検索エンジン向けに非表示で置く -->
       <h1 class="visually-hidden">資産寿命がわかる無料シミュレーター｜ミラため</h1>
-      <!-- 初回訪問だけ表示する診断への入口（シェア経由の来訪者の受け皿） -->
-      <div class="diagnosis-hero" id="diagnosisHero" hidden>
-        <img class="dh-img" src="assets/piyo-notice.png" alt="" aria-hidden="true" />
-        <div class="dh-text">
-          <strong>30秒でわかる「ミラため性格診断」</strong>
-          <span>あなたは16タイプのどれ？ いま入れた数字からわかるよ</span>
-        </div>
-        <button id="heroDiagnoseBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-acorn"/></svg>診断してみる</button>
-      </div>
-
       <section class="results">
 
         <dialog id="recordDialog" class="share-dialog record-dialog">
@@ -150,12 +140,19 @@
             <img src="assets/piyo-wave.png" alt="" aria-hidden="true" />
             <!-- ブランドの見せ場: 全員が必ず通る初回画面で、名前を一度だけ主役にする -->
             <p class="veil-brand"><img src="assets/logo-miratame.png" alt="ミラため" width="1000" height="428" /><span>未来のために、貯めて育てる</span></p>
-            <p class="veil-title">30秒で、あなたの<br />資産寿命が見える</p>
-            <p class="veil-sub">年齢・資産・収入・支出を入れるだけ。いまのペースで何歳まで安心か、未来のグラフでわかります</p>
+            <p class="veil-title">貯金やNISAを続けている。<br />でも、教育費も老後も、このままで大丈夫？</p>
+            <p class="veil-sub">今の資産・収入・支出・積立額を入れると、教育費・住宅費・老後まで含めて、資産が何歳まで続くかを30秒で見える化します</p>
+            <!-- 誰の悩みを解決するかを、機能説明より先に見せる（対象者の自分事化） -->
+            <ul class="veil-worries" aria-label="よくある悩み">
+              <li><span>NISA・積立</span>このまま積み立てたら、老後まで足りる？</li>
+              <li><span>子育て</span>教育費を払ったあとも、老後資金は残る？</li>
+              <li><span>働き方</span>何歳まで働けば、安心できそう？</li>
+            </ul>
+            <p class="veil-worries-note">ひとつでも気になったら、ミラためで確認できます</p>
             <div class="veil-trust" aria-hidden="false"><span>登録不要</span><span>データは端末内のみ</span><span>無料</span></div>
-            <button id="veilJumpBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg>シミュレーションをはじめる</button>
+            <button id="veilJumpBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg>今のペースを確かめる</button>
             <button id="veilRevealBtn" type="button" hidden><svg class="ico" aria-hidden="true"><use href="#i-sprout"/></svg>結果を見る</button>
-            <button id="veilSampleBtn" type="button" class="veil-sample">とりあえずサンプルで見てみる</button>
+            <button id="veilSampleBtn" type="button" class="veil-sample">数字を入れずにサンプルを見る</button>
           </div>
           <div class="cockpit-side">
             <!-- 問いから入る（みらい電卓方式）: モード切替＝知りたいことの選択 -->
@@ -194,6 +191,17 @@
         <div id="reaction" class="reaction" hidden aria-live="polite"><img class="reaction-img" id="reactionImg" src="assets/bird-pink.png" alt="" aria-hidden="true" loading="lazy" /><span id="reactionText"></span></div>
         <div class="summary-comment" id="summaryComment"></div>
 
+      </section>
+
+      <!-- 入力前に「分かった後にできること」を見せる: 結果の先に比較があると伝えて入力の腰を上げてもらう -->
+      <section class="panel next-preview" aria-labelledby="nextPreviewTitle">
+        <h2 id="nextPreviewTitle">見るだけで終わりません</h2>
+        <ul class="next-preview-list">
+          <li>積立を月1万円増やしたら？</li>
+          <li>生活費を月1万円見直したら？</li>
+          <li>退職を1年延ばしたら？</li>
+        </ul>
+        <p class="next-preview-note">条件を変えて、未来の違いをくらべられます</p>
       </section>
 
       <!-- 操作盤と見通しの2カラム。stickyフォームの可動範囲はこのラッパー内に閉じる -->
@@ -344,6 +352,15 @@
       <!-- 診断とよみものはPCでも全幅 -->
       <section class="results-more">
         <h2 class="zone-label">くわしい診断とよみもの</h2>
+        <!-- 診断への入口バナー。主役（資産寿命）を語り終えたあとのお楽しみとして、ここに置く -->
+        <div class="diagnosis-hero" id="diagnosisHero" hidden>
+          <img class="dh-img" src="assets/piyo-notice.png" alt="" aria-hidden="true" />
+          <div class="dh-text">
+            <strong>30秒でわかる「ミラため性格診断」</strong>
+            <span>あなたは16タイプのどれ？ いま入れた数字からわかるよ</span>
+          </div>
+          <button id="heroDiagnoseBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-acorn"/></svg>診断してみる</button>
+        </div>
         <div class="diagnosis-area" id="diagnosis"></div>
         <p class="lifeplan-link">
           <a id="lifeplanBtn" href="lifeplan.html"><svg class="ico" aria-hidden="true"><use href="#i-note"/></svg>ライフプラン表にする（印刷・PDF）</a>
@@ -363,13 +380,14 @@
 
         <div class="panel reading" id="reading">
           <h2><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg>よみもの・お知らせ</h2>
+          <!-- 上位3本は中心ユーザー（資産形成中）向け。初心者向けはその下と columns/ に残す -->
           <ul class="reading-list" id="readingList">
+            <li><a href="columns/shisan-jumyo.html">「資産寿命」ってなに？ 貯蓄額より大事な数字の話</a></li>
+            <li><a href="columns/kyoiku-hi.html">教育費、こわがりすぎなくていい話</a></li>
+            <li><a href="columns/nenkin.html">年金、実際いくらもらえるの？ 不安を数字に変える話</a></li>
             <li><a href="columns/hajimete-100man.html">はじめての100万円の作り方 — 貯金ゼロからの現実的な道のり</a></li>
             <li><a href="columns/tedori-tsukaikata.html">手取り20万円、どう分ける？ 世界一シンプルな家計のルール</a></li>
-            <li><a href="columns/hitorigurashi.html">一人暮らしのお金、最初の1年</a></li>
             <li><a href="columns/setsuyaku.html">節約が続かないのは、意志が弱いからじゃない</a></li>
-            <li><a href="columns/nenkin.html">年金、実際いくらもらえるの？ 不安を数字に変える話</a></li>
-            <li><a href="columns/shisan-jumyo.html">「資産寿命」ってなに？ 貯蓄額より大事な数字の話</a></li>
           </ul>
           <p class="reading-more"><a href="columns/">よみものをすべて見る →</a></p>
           <ul class="updates-list" id="updatesList"></ul>
