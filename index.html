@@ -362,6 +362,14 @@
           <button id="heroDiagnoseBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-acorn"/></svg>診断してみる</button>
         </div>
         <div class="diagnosis-area" id="diagnosis"></div>
+        <!-- あなたの次の一歩: 入力値に応じた「別の未来を見る」ボタン。助言ではなく比較の操作 -->
+        <div class="panel next-steps" id="nextSteps" hidden>
+          <p class="ns-title">あなたの次の一歩</p>
+          <p class="ns-sub">気になる条件をタップすると、グラフにくらべる線が出ます（もう一度タップで解除）</p>
+          <div class="ns-buttons" id="nsButtons"></div>
+          <p class="field-note" id="nextStepMsg" hidden aria-live="polite"></p>
+          <p class="ns-planbook"><button type="button" id="nsPlanbookLink" class="linklike">3つの未来をまとめて紙で見たい方へ ›</button></p>
+        </div>
         <p class="lifeplan-link">
           <a id="lifeplanBtn" href="lifeplan.html"><svg class="ico" aria-hidden="true"><use href="#i-note"/></svg>ライフプラン表にする（印刷・PDF）</a>
           <span>年表と診断を、家族と話せるA4・2枚組に</span>

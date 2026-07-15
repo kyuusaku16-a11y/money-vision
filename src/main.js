@@ -8,6 +8,7 @@ import { buildReaction } from './reactions.js';
 import { buildSchedule } from './schedule.js';
 import { judgeType, buildShareText, renderShareCard, buildAxisDetails } from './share.js';
 import { buildAdvice, buildNarrativeReport, findEducationPeak } from './advice.js';
+import { buildNextSteps } from './nextstep.js';
 import {
   loadHistory,
   recordSnapshot,
@@ -757,6 +758,7 @@ function update({ withReaction = false, light = false } = {}) {
       const guidance = buildGuidanceCards(params, mainSeries, comments, advice);
       renderComments(guidance.cards, guidance.summary);
       renderDiagnosis(buildNarrativeReport(params, mainSeries, kpis, advice), advice.filter((a) => a.type === 'tip'));
+      renderNextSteps(buildNextSteps(params, kpis));
       renderSchedule(buildSchedule(params));
       if (withReaction) renderReaction(buildReaction(prevKpis, kpis));
     }
@@ -768,10 +770,30 @@ function update({ withReaction = false, light = false } = {}) {
   }
   syncSliders();
 
-  // 保存プランとの比較線（選択中のときだけ）
+  // 「次の一歩」の試し比較（保存プランより優先。入力が変わったら当てるパッチも作り直す）
   let compare = null;
   const compareSc = state.scenarios.find((s) => s.id === compareId) ?? null;
-  if (compareSc) {
+  if (trialStep) {
+    const steps = buildNextSteps(params, kpis);
+    const cur = steps.find((s) => s.id === trialStep.id);
+    if (!cur) {
+      trialStep = null; // 状況が変わって候補から消えたら解除
+      $('nextStepMsg').hidden = true;
+    } else {
+      trialStep = cur;
+      const tp = { ...params, ...cur.patch };
+      const tSeries = projectAssets(tp, tp.expectedReturn / 100);
+      compare = { label: `お試し: ${cur.short}`, series: tSeries };
+      const tKpis = deriveKpis(tSeries, tp);
+      $('nextStepMsg').textContent =
+        `いまのプラン: ${lifeText(kpis, params.endAge)} ／ ${cur.short}: ${lifeText(tKpis, tp.endAge)}`;
+      $('nextStepMsg').hidden = false;
+    }
+  } else {
+    $('nextStepMsg').hidden = true;
+  }
+  // 保存プランとの比較線（選択中のときだけ）
+  if (!compare && compareSc) {
     const cp = { ...compareSc.inputs, ...compareSc.advanced, events: compareSc.events, children: compareSc.children };
     const cSeries = projectAssets(cp, cp.expectedReturn / 100);
     compare = { label: `保存: ${compareSc.name}`, series: cSeries };
@@ -787,7 +809,8 @@ function update({ withReaction = false, light = false } = {}) {
   const weakChart = weakSeries
     ? { rate: weakRate, series: near ? weakSeries.slice(0, windowYears + 1) : weakSeries }
     : null;
-  chart = renderChart($('chart'), chartSeries, params, chart, compare, weakChart);
+  // 比較中は弱気の帯を消して2本だけに（線が4本重なると読めない。帯は通常表示に戻れば復活）
+  chart = renderChart($('chart'), chartSeries, params, chart, compare, compare ? null : weakChart);
 }
 
 // 資産寿命の短い言い方（シナリオ比較用）
@@ -798,6 +821,44 @@ function lifeText(kpis, endAge) {
 
 // シナリオ保存・比較（仕様§9）
 let compareId = null;
+
+// 「あなたの次の一歩」の試し比較（保存シナリオとは別の一時的な1本。stateには保存しない）
+let trialStep = null;
+
+function renderNextSteps(steps) {
+  const panel = $('nextSteps');
+  const box = $('nsButtons');
+  // 試し中の再計算では選択状態を保つため、id が変わらない限り作り直さない
+  // （色の同期だけは毎回行う。外部で trialStep が解除されたとき active が残らないように）
+  const ids = steps.map((s) => s.id).join(',');
+  if (box.dataset.ids === ids) {
+    for (const b of box.children) b.className = trialStep && b.dataset.stepId === trialStep.id ? 'active' : '';
+    return;
+  }
+  box.dataset.ids = ids;
+  trialStep = steps.find((s) => trialStep && s.id === trialStep.id) ?? null;
+  box.textContent = '';
+  panel.hidden = steps.length === 0;
+  for (const s of steps) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.dataset.stepId = s.id;
+    btn.textContent = s.label;
+    btn.className = trialStep?.id === s.id ? 'active' : '';
+    btn.addEventListener('click', () => {
+      const on = trialStep?.id !== s.id;
+      trialStep = on ? s : null;
+      if (on) {
+        compareId = null; // 保存シナリオの比較線とは同時に出さない（1本だけ）
+        trackEvent(`next-step-${s.id}`);
+      }
+      renderScenarios();
+      for (const b of box.children) b.className = b === btn && on ? 'active' : '';
+      update({ light: true });
+    });
+    box.appendChild(btn);
+  }
+}
 
 function renderScenarios() {
   const list = $('scenarioList');
@@ -811,6 +872,7 @@ function renderScenarios() {
     name.title = 'タップでグラフにくらべる線を表示/非表示';
     name.addEventListener('click', () => {
       compareId = compareId === sc.id ? null : sc.id;
+      if (compareId) trialStep = null; // 比較線は1本だけ
       renderScenarios();
       update();
     });
@@ -843,6 +905,7 @@ function saveCurrentScenario() {
   state = res.state;
   saveState(state);
   compareId = res.scenario.id; // 保存した線をすぐグラフに出す
+  trialStep = null; // 比較線は1本だけ
   renderScenarios();
   update();
   renderReaction({ type: 'improved', text: 'プランを保存したよ！スライダーを動かして、未来をくらべてみて🌱' }, 6000);
@@ -1112,6 +1175,10 @@ function init() {
     /* ignore */
   }
   $('saveScenarioBtn').addEventListener('click', saveCurrentScenario);
+  $('nsPlanbookLink').addEventListener('click', () => {
+    trackEvent('next-step-planbook');
+    $('planbookProbe').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  });
   renderScenarios();
 
   // きょうのよみもの: ローカル日付基準の日替わりで1本（同じ日は誰でも同じ記事）

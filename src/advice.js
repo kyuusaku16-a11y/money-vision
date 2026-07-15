@@ -6,7 +6,7 @@ import { projectAssets, deriveKpis, educationCostAt } from './calc.js';
 import { fmtMoney } from './format.js';
 
 // 資産寿命を比較可能な数値に（終了年齢まで持つ=endAge+1 扱い）
-const lifeOf = (k, endAge) => (k.survivesToEnd ? endAge + 1 : (k.lifetimeAge ?? 0));
+export const lifeOf = (k, endAge) => (k.survivesToEnd ? endAge + 1 : (k.lifetimeAge ?? 0));
 
 const pick = (pool, seed) => pool[Math.min(pool.length - 1, Math.floor(seed * pool.length))];
 const SESSION_SEED = Math.random();
