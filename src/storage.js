@@ -1,4 +1,5 @@
 const KEY = 'money-vision-state';
+export const SIMULATION_END_AGE = 100;
 
 function deepFreeze(o) {
   for (const v of Object.values(o)) {
@@ -59,13 +60,18 @@ function freshDefault() {
 // 保存データ・読み込みファイルを正しい形に整える（欠けはデフォルトで補完）
 export function normalizeState(p) {
   if (!p || typeof p !== 'object') return freshDefault();
+  // 旧データの endAge は受け入れるが、現行の計算期間は常に100歳にそろえる。
+  const advanced = { ...DEFAULT_ADVANCED, ...(p.advanced || {}), endAge: SIMULATION_END_AGE };
+  const inputs = { ...DEFAULT_INPUTS, ...(p.inputs || {}) };
+  const settings = { themeId: 'sprout', viewMode: 'life', ...(p.settings || {}) };
+  if (inputs.targetAmount <= 0) settings.viewMode = 'life';
   return {
     version: 1,
-    inputs: { ...DEFAULT_INPUTS, ...(p.inputs || {}) },
-    advanced: { ...DEFAULT_ADVANCED, ...(p.advanced || {}) },
+    inputs,
+    advanced,
     events: Array.isArray(p.events) ? p.events : [],
     children: Array.isArray(p.children) ? p.children : [],
-    settings: { themeId: 'sprout', viewMode: 'life', ...(p.settings || {}) },
+    settings,
     scenarios: Array.isArray(p.scenarios) ? p.scenarios : [],
   };
 }

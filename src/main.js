@@ -1,6 +1,6 @@
 import { projectAssets, deriveKpis, educationCostAt, monthsToTarget, nearWindowYears, EDUCATION_COURSES } from './calc.js';
 import { buildComments } from './comments.js';
-import { loadState, saveState, normalizeState, addScenario, removeScenario, clearAllData, DEFAULT_ADVANCED } from './storage.js';
+import { loadState, saveState, normalizeState, addScenario, removeScenario, clearAllData, DEFAULT_ADVANCED, SIMULATION_END_AGE } from './storage.js';
 import { renderChart } from './chart.js';
 import { fmtMoney, manToYen, yenToMan, normalizeNumInput, formatNumInput } from './format.js';
 import { deriveValidation, clampInvestedAsset } from './validation.js';
@@ -37,7 +37,13 @@ import {
 } from './stamps.js';
 import { UPDATES, NOTE_ARTICLES, COLUMNS } from './updates.js';
 import { pickMonthlyStep } from './steps.js';
-import { addMonthlyAction, hasMonthlyAction, actionsForMonth } from './monthly-actions.js';
+import {
+  addMonthlyAction,
+  hasMonthlyAction,
+  actionsForMonth,
+  loadMonthlyActions,
+  importMonthlyActions,
+} from './monthly-actions.js';
 
 // フォーム定義。id は state のキー名と一致。unit は UI⇄state の変換則
 // （man=万円⇄円 / pct100=%⇄比率 / raw=そのまま）。
@@ -57,7 +63,6 @@ const FIELDS = [
   { id: 'retiredExpenseRatio', section: 'advanced', unit: 'pct100' },
   { id: 'loanMonthly', section: 'advanced', unit: 'man' },
   { id: 'loanEndAge', section: 'advanced', unit: 'raw' },
-  { id: 'endAge', section: 'advanced', unit: 'raw' },
 ];
 
 // スライダーは state 単位（円・歳）で動き、同名 id の数値入力と双方向同期（§5）
@@ -99,6 +104,10 @@ function readForm() {
   const advanced = { ...state.advanced };
   for (const f of FIELDS) {
     const v = toState(f, $(f.id).value);
+    if (f.id === 'targetAmount' && v === null && normalizeNumInput($(f.id).value) === '') {
+      inputs.targetAmount = 0;
+      continue;
+    }
     if (v === null) continue; // 空欄・入力途中は直前の値を維持
     (f.section === 'inputs' ? inputs : advanced)[f.id] = v;
   }
@@ -132,7 +141,8 @@ function writeForm() {
 }
 
 function paramsOf(s) {
-  return { ...s.inputs, ...s.advanced, events: s.events, children: s.children };
+  // endAge が90/110の旧保存データや保存プランでも、計算は100歳で固定する。
+  return { ...s.inputs, ...s.advanced, endAge: SIMULATION_END_AGE, events: s.events, children: s.children };
 }
 
 function syncSliders() {
@@ -144,16 +154,6 @@ function syncSliders() {
   }
 }
 
-// 「ちかい目標」の残り期間の言い方（月精度）
-function nearGoalText(months) {
-  if (months === null) return 'いまの計画では\n未到達';
-  if (months === 0) return '達成ずみ🎉';
-  const y = Math.floor(months / 12);
-  const m = months % 12;
-  if (y === 0) return `あと${m}ヶ月🎉`;
-  return m === 0 ? `あと${y}年ちょうど` : `あと${y}年${m}ヶ月`;
-}
-
 // 「1.9億〜4.3億円」のようなレンジ表記。ほぼ同じ値ならレンジにしない
 function moneyRange(weak, main) {
   if (weak === null || weak === undefined) return fmtMoney(main);
@@ -163,14 +163,10 @@ function moneyRange(weak, main) {
   return `${w.replace(/円$/, '')}〜${m}`;
 }
 
-function renderOutlookSummary(kpis, params, { masked = false, near = false } = {}) {
+function renderOutlookSummary(kpis, params, { masked = false } = {}) {
   const summary = $('outlookSummary');
   if (masked) {
     summary.textContent = '';
-    return;
-  }
-  if (near) {
-    summary.textContent = '今の入力条件から、目標までの距離を試算しています。資産寿命は「何歳まで安心？」で確認できます。';
     return;
   }
   summary.textContent = kpis.survivesToEnd
@@ -180,45 +176,24 @@ function renderOutlookSummary(kpis, params, { masked = false, near = false } = {
       : `今の条件では、約${kpis.lifetimeAge}歳ごろに資産が尽きる見込みです。これは今の入力条件を続けた場合の試算で、条件を少し変えると見通しも変わります。`;
 }
 
-function renderKpis(kpis, params, { near = false, windowYears = 5, assetsWindow = null, weakFinal = null, weakWindow = null, goalMonths = null, masked = false } = {}) {
+function renderKpis(kpis, params, { weakFinal = null, masked = false } = {}) {
   if (masked) {
     // 初回ベール中: 答えは「めくってのお楽しみ」
-    for (const id of ['kpi-current', 'kpi-final', 'kpi-target']) $(id).textContent = '？';
+    $('kpi-final').textContent = '？';
     $('kpi-lifetime').textContent = '？歳まで';
     $('kpi-lifetime').classList.remove('warn');
     $('lifetimeBarValue').textContent = '？歳まで';
     $('lifetimeBarValue').classList.remove('warn');
-    renderOutlookSummary(kpis, params, { masked: true, near });
+    renderOutlookSummary(kpis, params, { masked: true });
     return;
   }
-  $('kpi-current').textContent = fmtMoney(kpis.currentAssets);
   const life = $('kpi-lifetime');
   const bar = $('lifetimeBarValue');
-  if (near) {
-    // ちかい目標モード: 目標に合わせた年数スケールのKPIに差し替え（資産寿命は出さない）
-    $('kpi-final-label').textContent = `${windowYears}年後の資産`;
-    $('kpi-final').textContent = moneyRange(weakWindow, assetsWindow ?? kpis.finalAssets);
-    $('kpi-target-label').textContent = '毎月のつみたて';
-    $('kpi-target').textContent = `${yenToMan(params.monthlyInvest)}万円`;
-    $('kpi-lifetime-label').textContent = '目標まで';
-    life.textContent = nearGoalText(goalMonths);
-    life.classList.toggle('warn', goalMonths === null);
-    $('lifetimeBarLabel').textContent = '目標まで';
-    bar.textContent = life.textContent.replace('\n', '');
-    bar.classList.toggle('warn', goalMonths === null);
-    renderOutlookSummary(kpis, params, { near });
-    return;
-  }
   $('kpi-final-label').textContent = `${params.endAge}歳時点の資産`;
   $('kpi-final').textContent = moneyRange(weakFinal, kpis.finalAssets);
-  $('kpi-target-label').textContent = '目標到達まで';
   $('kpi-lifetime-label').textContent = '資産寿命';
   $('lifetimeBarLabel').textContent = '資産寿命';
   // 改行位置は \n で明示（.kpi-value は white-space: pre-line。単語の途中で折れないように）
-  $('kpi-target').textContent =
-    kpis.yearsToTarget === null
-      ? `${params.endAge}歳までに\n未到達`
-      : `あと${kpis.yearsToTarget}年\n（${kpis.targetAge}歳）`;
   life.textContent = kpis.survivesToEnd
     ? `${params.endAge}歳まで\n維持見込み`
     : kpis.lifetimeAge === null
@@ -229,6 +204,29 @@ function renderKpis(kpis, params, { near = false, windowYears = 5, assetsWindow 
   bar.textContent = life.textContent.replace('\n', '');
   bar.classList.toggle('warn', !kpis.survivesToEnd);
   renderOutlookSummary(kpis, params);
+}
+
+function renderGraphContext(kpis, params, goalMonths, windowYears) {
+  const hasGoal = params.targetAmount > 0;
+  const near = hasGoal && state.settings.viewMode === 'near';
+  const nearButton = $('modeNear');
+  nearButton.disabled = !hasGoal;
+  $('goalTabHint').hidden = hasGoal;
+  $('chartDescription').textContent = near
+    ? '今のペースで、目標までの資産推移を確認できます。'
+    : '今のペースで、資産が将来どう動くかを確認できます。';
+  $('goalResult').hidden = !near;
+  $('chartPanel').setAttribute('aria-labelledby', near ? 'modeNear' : 'modeLife');
+  if (!near) return;
+
+  $('goalResultAmount').textContent = `目標${fmtMoney(params.targetAmount)}`;
+  $('goalResultStatus').textContent = goalMonths === 0
+    ? '目標達成済みです'
+    : goalMonths === null || goalMonths > windowYears * 12 || kpis.targetAge === null
+      ? '今の条件では、表示期間内の到達が見込まれません'
+      : `${kpis.targetAge}歳ごろに到達見込み`;
+  $('goalResultConditions').textContent =
+    `現在 ${fmtMoney(kpis.currentAssets)} ｜ 毎月の積立 ${yenToMan(params.monthlyInvest)}万円`;
 }
 
 function makeCommentCard(c) {
@@ -636,7 +634,7 @@ const EVENT_PRESETS = [
 function addEventRow({ label = '', amountMan = 100, offsetYears = 10 } = {}) {
   const age = Math.max(
     state.inputs.currentAge + 1,
-    Math.min(state.inputs.currentAge + offsetYears, state.advanced.endAge),
+    Math.min(state.inputs.currentAge + offsetYears, SIMULATION_END_AGE),
   );
   state.events.push({ age, amount: manToYen(amountMan), label });
   renderEvents();
@@ -744,6 +742,9 @@ function withScrollAnchor(fn) {
 // 重いコメント欄の作り直し（高さが変わる=チラつきの原因）はドラッグ後に1回だけ
 function update({ withReaction = false, light = false } = {}) {
   state = readForm();
+  if (state.inputs.targetAmount <= 0 && state.settings.viewMode === 'near') {
+    state.settings.viewMode = 'life';
+  }
   // ベール中・サンプル閲覧中はサンプル値を保存しない（本人の結果と混ざるため）
   if (canPersist) saveState(state);
 
@@ -764,14 +765,11 @@ function update({ withReaction = false, light = false } = {}) {
   const windowYears = nearWindowYears(goalMonths);
   withScrollAnchor(() => {
     renderKpis(kpis, params, {
-      near,
       masked: veiled,
-      windowYears,
-      assetsWindow: mainSeries[windowYears]?.assets ?? null,
       weakFinal: weakSeries ? weakSeries[weakSeries.length - 1].assets : null,
-      weakWindow: weakSeries ? (weakSeries[windowYears]?.assets ?? null) : null,
-      goalMonths,
     });
+    renderGraphContext(kpis, params, goalMonths, windowYears);
+    syncModeButtons();
     renderValidation(deriveValidation(params));
     syncInvestClampUi();
     renderAdvancedSummary();
@@ -816,7 +814,7 @@ function update({ withReaction = false, light = false } = {}) {
   }
   // 保存プランとの比較線（選択中のときだけ）
   if (!compare && compareSc) {
-    const cp = { ...compareSc.inputs, ...compareSc.advanced, events: compareSc.events, children: compareSc.children };
+    const cp = { ...compareSc.inputs, ...compareSc.advanced, endAge: SIMULATION_END_AGE, events: compareSc.events, children: compareSc.children };
     const cSeries = projectAssets(cp, cp.expectedReturn / 100);
     compare = { label: `保存プラン: ${compareSc.name}`, series: cSeries };
     const cKpis = deriveKpis(cSeries, cp);
@@ -1056,6 +1054,7 @@ function init() {
   } catch {
     /* localStorage 不可なら常に非表示 */
   }
+  syncResultVisibility();
   state = loadState();
   // デプロイ直後の新旧モジュール混在キャッシュ対策: 配列フィールドを保証する
   state.events ??= [];
@@ -1151,7 +1150,7 @@ function init() {
   }
   $('nextPreview').hidden = !veiled;
   $('resultsActions').hidden = veiled;
-  $('diagnosisHero').hidden = veiled;
+  $('diagnosisHero').hidden = !firstVisit;
   $('shareBtn').hidden = veiled;
   if (veiled) $('chartVeil').hidden = false;
   $('veilJumpBtn').addEventListener('click', () => {
@@ -1222,7 +1221,7 @@ function init() {
     },
     { threshold: 0.15 },
   );
-  barObserver.observe(document.querySelector('.kpis'));
+  barObserver.observe(document.querySelector('.outlook-metrics'));
   barObserver.observe(document.querySelector('.chart-wrap'));
 
   // スマホでは「これからの大きな支出」を折りたたみ（CSSがスマホ幅でのみ効く）
@@ -1332,6 +1331,12 @@ function init() {
     if (!step) return;
     const result = addMonthlyAction(step.actionText);
     const button = $('trialAddMonthlyBtn');
+    // 二重登録は「追加済み」でよいが、保存失敗（容量超過等）で成功を装わない
+    const saved = result.added || hasMonthlyAction(step.actionText);
+    if (!saved) {
+      button.textContent = '保存できませんでした。端末の空き容量を確認してもう一度';
+      return;
+    }
     button.disabled = true;
     button.textContent = '今月の一歩に追加済み';
     if (result.added) {
@@ -1416,9 +1421,10 @@ function init() {
 
   // 図鑑ページの「診断する」リンクから来たら、すぐ結果を見せる
   // （リロードのたびに再表示されないよう、開いたらURLからは消す）
+  // ベール中は既定値のままの診断になってしまうため開かない（結果を見た後だけ）
   const searchParams = new URLSearchParams(location.search);
   if (searchParams.has('diagnose')) {
-    openShareDialog();
+    if (!veiled) openShareDialog();
     searchParams.delete('diagnose');
     const rest = searchParams.toString();
     history.replaceState(null, '', location.pathname + (rest ? `?${rest}` : '') + location.hash);
@@ -1453,10 +1459,16 @@ let veiled = false;
 let canPersist = true;
 const veilEdited = new Set();
 
+function syncResultVisibility() {
+  $('outlookResult').hidden = veiled;
+  $('resultsCockpit').classList.toggle('is-veiled', veiled);
+}
+
 // veil.js の遷移結果を反映し、必要なら mv-revealed を書く
 function setVeilState(next) {
   veiled = next.veiled;
   canPersist = next.canPersist;
+  syncResultVisibility();
   if (next.markRevealed) {
     try {
       localStorage.setItem('mv-revealed', '1');
@@ -1497,7 +1509,14 @@ function revealResults(fromSample = false) {
   update();
   $('nextPreview').hidden = true;
   $('resultsActions').hidden = false;
-  $('diagnosisHero').hidden = false;
+  // めくった直後のごほうび表示。ただし診断済みの人には出さない
+  let heroDone = false;
+  try {
+    heroDone = !!localStorage.getItem('mv-hero-done');
+  } catch {
+    /* 読めなければ初回扱い */
+  }
+  $('diagnosisHero').hidden = heroDone;
   $('shareBtn').hidden = false;
   document.querySelector('.chart-wrap').scrollIntoView({ behavior: 'smooth', block: 'center' });
   renderReaction(
@@ -1538,12 +1557,15 @@ const GOAL_PRESETS = [
 ];
 
 function syncModeButtons() {
-  const near = state.settings.viewMode === 'near';
+  const near = state.inputs.targetAmount > 0 && state.settings.viewMode === 'near';
   $('modeNear').classList.toggle('active', near);
   $('modeLife').classList.toggle('active', !near);
+  $('modeNear').setAttribute('aria-selected', String(near));
+  $('modeLife').setAttribute('aria-selected', String(!near));
 }
 
 function setViewMode(mode) {
+  if (mode === 'near' && state.inputs.targetAmount <= 0) return;
   state.settings.viewMode = mode;
   saveState(state);
   syncModeButtons();
@@ -1800,8 +1822,15 @@ function showBackupMsg(text) {
 
 function exportState() {
   trackEvent('backup-export');
-  // v2形式: 入力設定に加えて、資産チェック履歴とスタンプも一緒に引っ越しできるように
-  const payload = { app: 'miratame', version: 2, state, history: loadHistory(), stamps: loadStamps() };
+  // v2形式: 入力設定に加えて、資産チェック履歴・スタンプ・今月の一歩も一緒に引っ越しできるように
+  const payload = {
+    app: 'miratame',
+    version: 2,
+    state,
+    history: loadHistory(),
+    stamps: loadStamps(),
+    monthlyActions: loadMonthlyActions(),
+  };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -1823,6 +1852,7 @@ function importStateFile(file) {
       saveState(state);
       if (p.history) importHistory(p.history);
       if (p.stamps) importStamps(p.stamps);
+      if (p.monthlyActions) importMonthlyActions(p.monthlyActions);
       writeForm();
       renderEvents();
       renderChildren();

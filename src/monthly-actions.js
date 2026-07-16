@@ -31,6 +31,18 @@ export function addMonthlyAction(text, storage = globalThis.localStorage, ym = a
   return { added: true, actions: next };
 }
 
+// バックアップ読み込み用。形式の正しい項目だけを取り込み、保存後の一覧を返す
+export function importMonthlyActions(arr, storage = globalThis.localStorage) {
+  if (!Array.isArray(arr)) return loadMonthlyActions(storage);
+  const ok = arr.filter((item) => item && /^\d{4}-\d{2}$/.test(item.ym) && typeof item.text === 'string');
+  try {
+    storage?.setItem(KEY, JSON.stringify(ok));
+  } catch {
+    /* localStorage 使用不可でも無視 */
+  }
+  return ok;
+}
+
 export function hasMonthlyAction(text, storage = globalThis.localStorage, ym = actionMonth()) {
   return loadMonthlyActions(storage).some((item) => item.ym === ym && item.text === text);
 }
