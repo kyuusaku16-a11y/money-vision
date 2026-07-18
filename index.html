@@ -43,6 +43,11 @@
       <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M7 4h10a1 1 0 0 1 1 1v15l-6-4.5L6 20V5a1 1 0 0 1 1-1z"/></symbol>
       <symbol id="i-mail" viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M4 8l8 6 8-6"/></symbol>
       <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.5"/></symbol>
+      <symbol id="i-person" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3"/><path d="M6.5 20c.4-4 2.4-6 5.5-6s5.1 2 5.5 6"/></symbol>
+      <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M5 7.5h13a2 2 0 0 1 2 2V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10"/><path d="M16 12h4v4h-4a2 2 0 0 1 0-4z"/></symbol>
+      <symbol id="i-income" viewBox="0 0 24 24"><path d="M5 19V9M11 19V5M17 19v-7"/><path d="M3 19h18M4 11l6-6 4 4 6-6"/></symbol>
+      <symbol id="i-cart" viewBox="0 0 24 24"><path d="M4 5h2l2 10h9l2-7H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></symbol>
+      <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></symbol>
     </svg>
     <header class="topbar">
       <a class="tb-brand" href="./" aria-label="ミラため ホーム">
@@ -137,26 +142,35 @@
         <div class="cockpit chart-wrap is-veiled" id="resultsCockpit">
           <!-- 初回訪問だけのベール: 結果を「自分でめくる」ごほうびにする -->
           <div class="chart-veil" id="chartVeil" hidden>
-            <img src="assets/piyo-wave.png" alt="" aria-hidden="true" />
-            <!-- ブランドの見せ場: 全員が必ず通る初回画面で、名前を一度だけ主役にする -->
-            <p class="veil-brand"><img src="assets/logo-miratame.png" alt="ミラため" width="1000" height="428" /><span>未来のために、貯めて育てる</span></p>
-            <p class="veil-title">貯金やNISAを続けている。<br />でも、教育費も老後も、このままで大丈夫？</p>
-            <p class="veil-sub">今の資産・収入・支出・積立額を入れると、教育費・住宅費・老後まで含めて、資産が何歳まで続くかを30秒で見える化します</p>
-            <!-- 誰の悩みを解決するかを、機能説明より先に見せる（対象者の自分事化） -->
-            <ul class="veil-worries" aria-label="よくある悩み">
-              <li><span>NISA・積立</span>このまま積み立てたら、老後まで足りる？</li>
-              <li><span>子育て</span>教育費を払ったあとも、老後資金は残る？</li>
-              <li><span>働き方</span>何歳まで働けば、安心できそう？</li>
-            </ul>
-            <p class="veil-worries-note">ひとつでも気になったら、ミラためで確認できます</p>
-            <div class="veil-trust" aria-hidden="false"><span>登録不要</span><span>データは端末内のみ</span><span>無料</span></div>
-            <button id="veilJumpBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg>今のペースを確かめる</button>
-            <button id="veilRevealBtn" type="button" hidden><svg class="ico" aria-hidden="true"><use href="#i-sprout"/></svg>今のペースを確かめる</button>
-            <button id="veilSampleBtn" type="button" class="veil-sample">サンプル結果を見る</button>
+            <div class="veil-copy">
+              <p class="veil-title">将来のお金を、<br />今できることから<span class="nowrap">見える化。</span></p>
+              <p class="veil-sub">今の資産・収入・支出・積立額から、教育費・住宅費・老後まで含めた資産寿命をシミュレーションします。</p>
+              <button id="veilJumpBtn" type="button"><svg class="ico" aria-hidden="true"><use href="#i-pencil"/></svg>無料でシミュレーションを始める</button>
+              <button id="veilRevealBtn" type="button" hidden><svg class="ico" aria-hidden="true"><use href="#i-sprout"/></svg>この数字で結果を見る</button>
+              <button id="veilSampleBtn" type="button" class="veil-sample">サンプル結果を見る</button>
+            </div>
+            <img class="veil-piyo" src="assets/piyo-memo.png" alt="" aria-hidden="true" />
+            <div class="veil-phone" aria-hidden="true">
+              <div class="phone">
+                <div class="phone-screen">
+                  <div class="pm-head"><img src="assets/logo-miratame.png" alt="" /></div>
+                  <div class="pm-card"><span class="pm-label">資産寿命</span><span class="pm-value">83<small>歳まで</small></span></div>
+                  <div class="pm-card pm-chart"><span class="pm-label">資産推移グラフ</span><svg viewBox="0 0 200 74" aria-hidden="true"><path d="M0 64 C 40 60, 70 40, 105 30 C 135 22, 165 34, 200 56 L200 74 L0 74 Z" fill="#86a84f" opacity="0.22" /><path d="M0 64 C 40 60, 70 40, 105 30 C 135 22, 165 34, 200 56" fill="none" stroke="#567536" stroke-width="2.4" stroke-linecap="round" /><line x1="0" y1="70" x2="200" y2="70" stroke="#e9e1d5" stroke-width="1" /></svg></div>
+                  <div class="pm-card"><span class="pm-label">目標達成率 72%</span><div class="pm-goal-bar"><i></i></div></div>
+                  <div class="pm-card pm-next"><span class="pm-label">あなたの次の一歩</span><strong>積立を月1万円増やした場合を試す</strong></div>
+                </div>
+              </div>
+              <p class="mock-note">表示例です。実際の結果は入力内容により変わります。</p>
+            </div>
+            <div class="veil-trust" aria-hidden="false"><span>登録不要</span><span>データは端末内のみ</span><span>金融商品の勧誘なし</span><span>30秒で確認</span></div>
           </div>
           <div class="outlook-result" id="outlookResult" hidden>
+            <div class="dashboard-main-column">
             <section class="panel outlook-summary-card" aria-labelledby="outlook">
-              <h2 class="outlook-title" id="outlook">今回の見通し</h2>
+              <div class="outlook-card-head">
+                <h2 class="outlook-title" id="outlook"><svg class="ico" aria-hidden="true"><use href="#i-sprout"/></svg>今回の見通し</h2>
+                <span>今の条件を続けた場合</span>
+              </div>
               <div class="outlook-metrics">
                 <div class="outlook-metric">
                   <span class="result-icon" aria-hidden="true"><img src="assets/piyo-good.png" alt="" /></span>
@@ -172,52 +186,24 @@
                     <span class="outlook-metric-value kpi-value" id="kpi-final">-</span>
                   </div>
                 </div>
+                <div class="outlook-metric outlook-metric-goal">
+                  <span class="goal-progress-ring" id="goalProgressRing" role="img" aria-label="目標への現在地"><span id="kpi-goal-progress">-</span></span>
+                  <div>
+                    <span class="outlook-metric-label">目標への現在地</span>
+                    <span class="goal-progress-gap" id="kpi-goal-gap">-</span>
+                  </div>
+                </div>
               </div>
               <p class="outlook-basis">今の入力条件をそのまま続けた場合の試算です。</p>
               <p class="outlook-summary" id="outlookSummary"></p>
-            </section>
-
-            <!-- 助言ではなく、保存せずに別条件を比較する操作 -->
-            <section class="panel next-steps" id="nextSteps" hidden aria-labelledby="nextStepsTitle">
-              <h2 class="ns-title" id="nextStepsTitle">あなたの次の一歩</h2>
-              <p class="ns-comfort" id="nextStepsComfort" hidden>今のプランには、少し余裕がありそうです。<br />余裕の使い方を試してみませんか？</p>
-              <p class="ns-safety">保存内容を変えずに、条件を試せます。</p>
-              <div class="ns-buttons" id="nsButtons"></div>
-              <p class="trial-notice" id="trialNotice" hidden aria-live="polite"></p>
-              <section class="trial-comparison" id="trialComparison" hidden aria-live="polite" aria-atomic="true">
-                <p class="trial-condition" id="trialCondition"></p>
-                <p class="trial-status">お試し中｜入力値や保存データは変わりません</p>
-                <div class="trial-plans">
-                  <div class="trial-plan">
-                    <strong>今のプラン</strong>
-                    <span id="trialCurrentLife"></span>
-                    <span id="trialCurrentFinal"></span>
-                  </div>
-                  <div class="trial-plan trial-plan-new">
-                    <strong>お試しプラン</strong>
-                    <span id="trialNewLife"></span>
-                    <span id="trialNewFinal"></span>
-                  </div>
-                </div>
-                <div class="trial-differences">
-                  <div><span>資産寿命の変化</span><strong id="trialLifeDelta"></strong></div>
-                  <div><span id="trialFinalDeltaLabel">100歳時点の資産の変化</span><strong id="trialFinalDelta"></strong></div>
-                </div>
-                <p class="trial-outcome" id="trialOutcome"></p>
-                <div class="trial-actions">
-                  <button id="trialCancelBtn" type="button" class="trial-cancel">お試しをやめる</button>
-                  <button id="trialAddMonthlyBtn" type="button">この内容を、今月の一歩にする</button>
-                </div>
-                <div id="trialMonthlyMessage" class="trial-monthly-message" hidden>
-                  <strong>今月の一歩に追加しました。</strong>
-                  <span>次の月のみなおしで、できたか振り返れます。</span>
-                </div>
-              </section>
-              <p class="ns-planbook" id="nsPlanbook" hidden><button type="button" id="nsPlanbookLink" class="linklike">3つの未来を、家族とゆっくり見比べたい方へ</button></p>
+              <img class="outlook-piyo" src="assets/piyo-good.png" alt="" aria-hidden="true" />
             </section>
 
             <div class="panel cockpit-main">
-              <h3 class="chart-title">資産推移グラフ</h3>
+              <div class="chart-card-head">
+                <h3 class="chart-title"><svg class="ico" aria-hidden="true"><use href="#i-income"/></svg>資産推移グラフ</h3>
+                <a class="chart-help" href="guide.html"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg>グラフの見方</a>
+              </div>
               <div class="chart-view-tools">
                 <div class="view-toggle" role="tablist" aria-label="グラフの表示期間">
                   <button id="modeLife" type="button" role="tab" aria-selected="true" aria-controls="chartPanel">100歳まで</button>
@@ -243,6 +229,57 @@
               <!-- リピートの生命線: 結果を見た人に「来月また来る理由」を1行で渡す -->
               <p class="record-hint">これは今日の見通し。来月の<a href="#track">みなおし</a>で、答え合わせをしましょう</p>
             </div>
+            </div>
+
+            <aside class="dashboard-side-column" aria-label="次に試せること">
+            <!-- 助言ではなく、保存せずに別条件を比較する操作 -->
+            <section class="panel next-steps" id="nextSteps" hidden aria-labelledby="nextStepsTitle">
+              <h2 class="ns-title" id="nextStepsTitle"><svg class="ico" aria-hidden="true"><use href="#i-sprout"/></svg>あなたの次の一歩</h2>
+              <p class="ns-comfort" id="nextStepsComfort" hidden>今のプランには、少し余裕がありそうです。<br />余裕の使い方を試してみませんか？</p>
+              <p class="ns-safety">できることから選んで、未来の変化を見比べられます。保存内容は変わりません。</p>
+              <div class="ns-buttons" id="nsButtons"></div>
+              <p class="trial-notice" id="trialNotice" hidden aria-live="polite"></p>
+              <p class="ns-planbook" id="nsPlanbook" hidden><button type="button" id="nsPlanbookLink" class="linklike">3つの未来を、家族とゆっくり見比べたい方へ</button></p>
+            </section>
+
+            <section class="panel dashboard-hint" aria-labelledby="dashboardHintTitle">
+              <div>
+                <h3 id="dashboardHintTitle"><svg class="ico" aria-hidden="true"><use href="#i-sprout"/></svg>ミラためからのヒント</h3>
+                <p>一度に全部を変えなくても大丈夫。気になる条件をひとつ試して、未来の動きを見比べてみましょう。</p>
+              </div>
+              <img src="assets/piyo-idea.png" alt="" aria-hidden="true" />
+            </section>
+            </aside>
+
+            <section class="trial-comparison" id="trialComparison" hidden aria-live="polite" aria-atomic="true">
+              <p class="trial-condition" id="trialCondition"></p>
+              <p class="trial-status">お試し中｜入力値や保存データは変わりません</p>
+              <div class="trial-plans">
+                <div class="trial-plan">
+                  <strong>今のプラン</strong>
+                  <span id="trialCurrentLife"></span>
+                  <span id="trialCurrentFinal"></span>
+                </div>
+                <div class="trial-plan trial-plan-new">
+                  <strong>お試しプラン</strong>
+                  <span id="trialNewLife"></span>
+                  <span id="trialNewFinal"></span>
+                </div>
+              </div>
+              <div class="trial-differences">
+                <div><span>資産寿命の変化</span><strong id="trialLifeDelta"></strong></div>
+                <div><span id="trialFinalDeltaLabel">100歳時点の資産の変化</span><strong id="trialFinalDelta"></strong></div>
+              </div>
+              <p class="trial-outcome" id="trialOutcome"></p>
+              <div class="trial-actions">
+                <button id="trialCancelBtn" type="button" class="trial-cancel">お試しをやめる</button>
+                <button id="trialAddMonthlyBtn" type="button">この内容を、今月の一歩にする</button>
+              </div>
+              <div id="trialMonthlyMessage" class="trial-monthly-message" hidden>
+                <strong>今月の一歩に追加しました。</strong>
+                <span>次の月のみなおしで、できたか振り返れます。</span>
+              </div>
+            </section>
           </div>
         </div>
 
@@ -315,17 +352,18 @@
       <!-- stickyフォームの可動範囲を閉じ込める実体ボックス（display:contentsの.dashは範囲にならない） -->
       <div class="form-col">
       <section class="panel form">
-        <h2>あなたの数字</h2>
+        <h2><svg class="ico" aria-hidden="true"><use href="#i-sprout"/></svg>シミュレーション設定</h2>
+        <p class="form-lede">数字を変えると、見通しとグラフにすぐ反映されます。</p>
 
-        <label data-unit="歳">現在の年齢（歳）<input type="text" inputmode="numeric" id="currentAge" /></label>
+        <label class="form-field-primary" data-unit="歳"><span class="form-label-text"><svg class="ico" aria-hidden="true"><use href="#i-person"/></svg>現在の年齢</span><input type="text" inputmode="numeric" id="currentAge" /></label>
 
-        <label data-unit="万円">現在の資産（万円）<input type="text" inputmode="numeric" id="totalAsset" /></label>
+        <label class="form-field-primary" data-unit="万円"><span class="form-label-text"><svg class="ico" aria-hidden="true"><use href="#i-wallet"/></svg>現在の資産</span><input type="text" inputmode="numeric" id="totalAsset" /></label>
 
-        <label data-unit="万円">手取り年収・ボーナス込み（万円）<input type="text" inputmode="numeric" id="annualIncome" /></label>
+        <label class="form-field-primary" data-unit="万円"><span class="form-label-text"><svg class="ico" aria-hidden="true"><use href="#i-income"/></svg>手取り年収</span><input type="text" inputmode="numeric" id="annualIncome" /></label>
         <input type="range" id="annualIncomeSlider" min="2000000" max="15000000" step="100000" aria-label="手取り年収" />
         <p id="incomeNotice" class="validation" hidden aria-live="polite"></p>
 
-        <label data-unit="万円">年間支出・現役（万円）<input type="text" inputmode="numeric" id="annualExpense" /></label>
+        <label class="form-field-primary" data-unit="万円"><span class="form-label-text"><svg class="ico" aria-hidden="true"><use href="#i-cart"/></svg>年間支出・現役</span><input type="text" inputmode="numeric" id="annualExpense" /></label>
         <input type="range" id="annualExpenseSlider" min="1000000" max="8000000" step="100000" aria-label="年間支出" />
 
         <!-- 投資項目は「している人だけ」の折りたたみ。収入・支出を見てから積立を考える順番に合わせる。
@@ -339,7 +377,7 @@
           <p class="field-note">※現金から投資へ移す金額です（収入とは別に増えるお金ではありません）</p>
         </details>
 
-        <label data-unit="万円">目標金額（万円）<input type="text" inputmode="numeric" id="targetAmount" /></label>
+        <label class="form-field-primary" data-unit="万円"><span class="form-label-text"><svg class="ico" aria-hidden="true"><use href="#i-target"/></svg>目標金額</span><input type="text" inputmode="numeric" id="targetAmount" /></label>
         <div class="goal-presets" id="goalPresets"></div>
         <p class="field-note">※ちかい目標を選ぶと、目標に合わせた5〜10年のグラフに切り替わります</p>
 
@@ -499,11 +537,6 @@
       </p>
       <p>
         更新のお知らせ: <a class="footer-link" href="https://x.com/AiYKIMdrmTKjiZI" target="_blank" rel="noopener">X（ぴよため）</a>／<a class="footer-link" href="https://note.com/piyo_tame" target="_blank" rel="noopener">note</a>
-      </p>
-      <p class="theme-row">
-        きせかえ:
-        <button id="themeBerry" class="theme-btn" type="button"><span class="swatch berry" aria-hidden="true"></span>ベリー</button>
-        <button id="themeForest" class="theme-btn" type="button"><span class="swatch forest" aria-hidden="true"></span>フォレスト</button>
       </p>
       <p id="feedbackRow" hidden><a class="footer-link" id="feedbackLink" href="" target="_blank" rel="noopener"><svg class="ico" aria-hidden="true"><use href="#i-mail"/></svg>感想・こんな機能がほしい（匿名でOK）</a></p>
     </footer>

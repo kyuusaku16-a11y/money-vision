@@ -176,7 +176,36 @@ function renderOutlookSummary(kpis, params, { masked = false } = {}) {
       : `今の条件では、約${kpis.lifetimeAge}歳ごろに資産が尽きる見込みです。これは今の入力条件を続けた場合の試算で、条件を少し変えると見通しも変わります。`;
 }
 
+function renderGoalProgress(kpis, params, { masked = false } = {}) {
+  const ring = $('goalProgressRing');
+  const value = $('kpi-goal-progress');
+  const gap = $('kpi-goal-gap');
+  if (masked) {
+    ring.style.setProperty('--goal-progress', '0%');
+    ring.setAttribute('aria-label', '目標への現在地は結果表示後に確認できます');
+    value.textContent = '？';
+    gap.textContent = '結果表示後に確認';
+    return;
+  }
+  if (params.targetAmount <= 0) {
+    ring.style.setProperty('--goal-progress', '0%');
+    ring.setAttribute('aria-label', '目標金額は未設定です');
+    value.textContent = '—';
+    gap.textContent = '目標金額は未設定';
+    return;
+  }
+  const progress = Math.max(0, Math.min(100, (kpis.currentAssets / params.targetAmount) * 100));
+  const rounded = Math.round(progress);
+  ring.style.setProperty('--goal-progress', `${progress}%`);
+  ring.setAttribute('aria-label', `目標金額に対する現在地 ${rounded}%`);
+  value.textContent = `${rounded}%`;
+  gap.textContent = progress >= 100
+    ? '目標金額に到達'
+    : `あと${fmtMoney(params.targetAmount - kpis.currentAssets)}`;
+}
+
 function renderKpis(kpis, params, { weakFinal = null, masked = false } = {}) {
+  renderGoalProgress(kpis, params, { masked });
   if (masked) {
     // 初回ベール中: 答えは「めくってのお楽しみ」
     $('kpi-final').textContent = '？';
@@ -874,6 +903,24 @@ function signedMoney(yen) {
   return `${yen > 0 ? '＋' : '−'}${fmtMoney(Math.abs(yen))}`;
 }
 
+function nextStepIconId(category) {
+  return {
+    expense: 'i-cart',
+    investment: 'i-income',
+    retirement: 'i-calendar',
+    leisure: 'i-flower',
+    'return-rate': 'i-target',
+  }[category] ?? 'i-sprout';
+}
+
+function nextStepImpact(step) {
+  if (step.kind === 'comfort' && step.comparison?.trialKpis?.survivesToEnd) {
+    return `${SIMULATION_END_AGE}歳まで資産が続く見込み`;
+  }
+  if (step.lifetimeDelta !== 0) return `資産寿命が${signedYears(step.lifetimeDelta)}`;
+  return `${SIMULATION_END_AGE}歳時点の資産が${signedMoney(step.finalAssetsDelta)}`;
+}
+
 function trialLifeValue(kpis, endAge) {
   if (kpis.survivesToEnd) return `${endAge}歳まで維持見込み`;
   return kpis.lifetimeAge === null ? '見直しの余地あり' : `約${kpis.lifetimeAge}歳`;
@@ -932,7 +979,9 @@ function renderTrialComparison(params, kpis, comparison) {
 function renderNextSteps(steps) {
   const panel = $('nextSteps');
   const box = $('nsButtons');
-  const ids = steps.map((s) => s.id).join(',');
+  const signature = steps
+    .map((s) => `${s.id}:${s.lifetimeDelta}:${Math.round(s.finalAssetsDelta)}:${s.kind}`)
+    .join(',');
   panel.hidden = veiled || steps.length === 0;
   $('nextStepsComfort').hidden = steps[0]?.kind !== 'comfort';
   $('nsPlanbook').hidden = !hasTriedNextStep();
@@ -940,25 +989,46 @@ function renderNextSteps(steps) {
     trackEvent('next-step-shown');
     nextStepsShownTracked = true;
   }
-  if (box.dataset.ids === ids) {
+  if (box.dataset.signature === signature) {
     syncTrialButtons();
     return;
   }
-  box.dataset.ids = ids;
+  box.dataset.signature = signature;
   box.textContent = '';
   for (const s of steps) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.dataset.stepId = s.id;
+    btn.dataset.category = s.category;
     btn.dataset.label = s.label;
     btn.dataset.selectedLabel = s.selectedLabel;
     btn.setAttribute('aria-pressed', 'false');
+
+    const icon = document.createElement('span');
+    icon.className = 'ns-button-icon';
+    icon.setAttribute('aria-hidden', 'true');
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24');
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', `#${nextStepIconId(s.category)}`);
+    svg.appendChild(use);
+    icon.appendChild(svg);
+
+    const copy = document.createElement('span');
+    copy.className = 'ns-button-copy';
     const label = document.createElement('span');
     label.className = 'ns-button-label';
     label.textContent = s.label;
-    const reason = document.createElement('small');
-    reason.textContent = s.reason;
-    btn.append(label, reason);
+    const impact = document.createElement('small');
+    impact.className = 'ns-button-impact';
+    impact.textContent = nextStepImpact(s);
+    copy.append(label, impact);
+
+    const arrow = document.createElement('span');
+    arrow.className = 'ns-button-arrow';
+    arrow.setAttribute('aria-hidden', 'true');
+    arrow.textContent = '›';
+    btn.append(icon, copy, arrow);
     btn.addEventListener('click', () => {
       const on = trialStep?.id !== s.id;
       if (on) {
@@ -1181,9 +1251,6 @@ function init() {
   });
   $('palBerry').addEventListener('click', () => paintShareCard('berry'));
   $('palForest').addEventListener('click', () => paintShareCard('forest'));
-  $('themeBerry').addEventListener('click', () => setTheme('berry'));
-  $('themeForest').addEventListener('click', () => setTheme('forest'));
-  applyTheme(state.settings.themeId);
   $('shareDoBtn').addEventListener('click', doShare);
   $('shareSaveBtn').addEventListener('click', saveShareImage);
   $('shareCloseBtn').addEventListener('click', () => $('shareDialog').close());
@@ -1437,22 +1504,6 @@ function init() {
 
 // 感想・要望フォームのURL（用意できたらここに貼るだけでフッターに現れる）
 const FEEDBACK_URL = '';
-
-// きせかえ（🍓ベリー/🌲フォレスト）。配色はCSS変数、選択は settings.themeId に保存
-function applyTheme(id) {
-  const forest = id === 'forest';
-  document.documentElement.dataset.theme = forest ? 'forest' : '';
-  $('themeBerry').classList.toggle('active', !forest);
-  $('themeForest').classList.toggle('active', forest);
-}
-
-function setTheme(id) {
-  state.settings.themeId = id;
-  saveState(state);
-  applyTheme(id);
-  trackEvent(`theme-${id}`);
-  update(); // グラフの塗り色をテーマに追従させる
-}
 
 // 初回訪問のベール（結果を自分でめくる演出）
 let veiled = false;
@@ -1921,7 +1972,7 @@ function blockWhileVeiled(message) {
   const title = veil.querySelector('.veil-title');
   const original = title.innerHTML;
   // お預けの間だけ、ぴよもびっくり顔に
-  const veilImg = veil.querySelector('img');
+  const veilImg = veil.querySelector('.veil-piyo');
   const originalImg = veilImg?.src;
   if (veilImg) veilImg.src = 'assets/piyo-surprised.png';
   title.textContent = message;
