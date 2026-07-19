@@ -48,6 +48,7 @@
       <symbol id="i-income" viewBox="0 0 24 24"><path d="M5 19V9M11 19V5M17 19v-7"/><path d="M3 19h18M4 11l6-6 4 4 6-6"/></symbol>
       <symbol id="i-cart" viewBox="0 0 24 24"><path d="M4 5h2l2 10h9l2-7H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></symbol>
       <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></symbol>
+      <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 10.5v6"/><path d="M12 7.5h.01"/></symbol>
     </svg>
     <header class="topbar">
       <a class="tb-brand" href="./" aria-label="ミラため ホーム">
@@ -169,6 +170,7 @@
             <section class="panel outlook-summary-card" aria-labelledby="outlook">
               <div class="outlook-card-head">
                 <h2 class="outlook-title" id="outlook"><svg class="ico" aria-hidden="true"><use href="#i-sprout"/></svg>今回の見通し</h2>
+                <a class="outlook-info" href="guide.html#shisan-jumyo" aria-label="資産寿命と今回の見通しについて確認する"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg></a>
               </div>
               <div class="outlook-metrics">
                 <div class="outlook-metric outlook-metric-lifetime">
@@ -183,8 +185,11 @@
                 </div>
                 <div class="outlook-metric outlook-metric-goal">
                   <span class="outlook-metric-label">目標への現在地</span>
-                  <span class="outlook-metric-value goal-progress-ring" id="goalProgressRing" role="img" aria-label="目標への現在地"><span id="kpi-goal-progress">-</span></span>
-                  <span class="outlook-metric-description goal-progress-gap" id="kpi-goal-gap">-</span>
+                  <div class="goal-progress-visual">
+                    <span class="outlook-metric-value goal-progress-ring" id="goalProgressRing" role="img" aria-label="目標への現在地"><span id="kpi-goal-progress">-</span></span>
+                    <img class="outlook-goal-piyo" src="assets/piyo-notice.png" alt="" aria-hidden="true" />
+                  </div>
+                  <span class="visually-hidden goal-progress-gap" id="kpi-goal-gap">-</span>
                 </div>
               </div>
             </section>
