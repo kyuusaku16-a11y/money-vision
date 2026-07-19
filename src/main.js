@@ -838,7 +838,7 @@ function update({ withReaction = false, light = false } = {}) {
     ? { series: near ? weakSeries.slice(0, windowYears + 1) : weakSeries }
     : null;
   // 比較中は想定の幅を消して、比較線と支出線を読みやすくする。
-  chart = renderChart($('chart'), chartSeries, params, chart, compare, compare ? null : weakChart);
+  chart = renderChart($('chart'), chartSeries, params, chart, compare, compare ? null : weakChart, { showTarget: near });
 }
 
 // 資産寿命の短い言い方（シナリオ比較用）
@@ -1076,7 +1076,7 @@ function saveCurrentScenario() {
   clearTrial(); // 比較線は1本だけ。選択色も必ず戻す
   renderScenarios();
   update();
-  renderReaction({ type: 'improved', text: 'プランを保存したよ！スライダーを動かして、未来をくらべてみて🌱' }, 6000);
+  renderReaction({ type: 'improved', text: '比較用に保存しました。条件を変えるとグラフで比較できます。' }, 6000);
 }
 
 function debounce(fn, ms) {

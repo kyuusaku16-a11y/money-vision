@@ -4,14 +4,13 @@
 
 /* global Chart */
 
-import { educationCostAt, projectExpenses } from './calc.js';
+import { projectExpenses } from './calc.js';
 
 const CHART_COLORS = {
   text: '#6b514a',
-  grid: '#efdcd0',
-  gain: '#20a77c',
-  loss: '#d97975',
-  target: 'rgba(107, 81, 74, 0.45)',
+  grid: 'rgba(226, 211, 189, 0.55)',
+  gain: '#80a83c',
+  target: 'rgba(107, 81, 74, 0.30)',
   retirement: '#e9a66f',
   goal: '#f3cf7a',
   event: '#9fc8b3',
@@ -46,9 +45,10 @@ function fmtYen(yen) {
  * @param {Chart|null|undefined} existingChart — previous Chart instance to destroy first
  * @param {{ label: string, series: { age: number, assets: number }[] }|null} [compare] — 保存プラン比較線
  * @param {{ series: { age: number, assets: number }[] }|null} [weak] — 低めケース（想定幅の下端）
+ * @param {{ showTarget?: boolean }} [view] — 目標タブだけ目標線・達成バッジを表示
  * @returns {Chart}
  */
-export function renderChart(canvas, mainSeries, params, existingChart, compare = null, weak = null) {
+export function renderChart(canvas, mainSeries, params, existingChart, compare = null, weak = null, { showTarget = true } = {}) {
   if (existingChart) existingChart.destroy();
 
   const labels  = mainSeries.map((p) => p.age);
@@ -68,13 +68,19 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
   );
   // --- goal-reached point: first year assets touch the target ---
   const goalIdx = mainSeries.findIndex((p) => p.assets >= params.targetAmount);
+  const lastIdx = mainSeries.length - 1;
+  const isIntervalPoint = (p, i) => i === 0 || i === lastIdx || p.age % 5 === 0;
 
   const pointRadius = mainSeries.map((p, i) =>
-    i === retirementIdx ? 7 : i === goalIdx ? 6 : eventAges.has(p.age) ? 5 : 0);
+    i === retirementIdx ? 5 : showTarget && i === goalIdx ? 5 : eventAges.has(p.age) ? 4 : isIntervalPoint(p, i) ? 2 : 0);
   const pointBg = mainSeries.map((p, i) =>
-    i === retirementIdx ? CHART_COLORS.retirement : i === goalIdx ? CHART_COLORS.goal : eventAges.has(p.age) ? CHART_COLORS.event : 'transparent');
+    i === retirementIdx ? CHART_COLORS.retirement : showTarget && i === goalIdx ? CHART_COLORS.goal : eventAges.has(p.age) ? CHART_COLORS.event : CHART_COLORS.gain);
   const pointBorder = mainSeries.map((p, i) =>
-    i === retirementIdx || i === goalIdx || eventAges.has(p.age) ? '#fff' : 'transparent');
+    i === retirementIdx || (showTarget && i === goalIdx) || eventAges.has(p.age) ? '#fff' : CHART_COLORS.gain);
+  const expensePointRadius = mainSeries.map((p, i) => {
+    const expenseChanged = i > 0 && Math.abs(expenseData[i] - expenseData[i - 1]) >= 10_000;
+    return i === retirementIdx || eventAges.has(p.age) || expenseChanged ? 3 : isIntervalPoint(p, i) ? 2 : 0;
+  });
 
   // --- target horizontal line (constant across all labels) ---
   const targetData = mainSeries.map(() => params.targetAmount);
@@ -83,7 +89,7 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
   const goalBadge = {
     id: 'goalBadge',
     afterDatasetsDraw(chart) {
-      if (goalIdx < 0) return;
+      if (!showTarget || goalIdx < 0) return;
       const pt = chart.getDatasetMeta(0).data[goalIdx];
       if (!pt) return;
       const { ctx, chartArea } = chart;
@@ -123,37 +129,21 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
     },
   };
 
-  // 支出線の終端に金額を直接描く（右軸との往復なしで支出額が読めるように）
-  const expenseLabel = {
-    id: 'expenseLabel',
-    afterDatasetsDraw(chart) {
-      const meta = chart.getDatasetMeta(1);
-      const pt = meta.data[meta.data.length - 1];
-      if (!pt) return;
-      const { ctx, chartArea } = chart;
-      ctx.save();
-      ctx.font = 'bold 12px "Zen Maru Gothic", "Hiragino Sans", sans-serif';
-      ctx.textAlign = 'right';
-      ctx.fillStyle = CHART_COLORS.expense;
-      const label = `支出 ${fmtYen(expenseData[expenseData.length - 1])}円`;
-      ctx.fillText(label, Math.min(pt.x, chartArea.right - 4), Math.max(pt.y - 10, chartArea.top + 12));
-      ctx.restore();
-    },
-  };
-
   return new Chart(canvas, {
     type: 'line',
     data: {
       labels,
       datasets: [
-        // 1. Main line — thick, segment-colored green (gain) / red (loss)
+        // 1. Main line — 上昇・下降を問わず緑で統一し、資産の線だと直感で追えるようにする
         {
           label:                '資産残高',
           data:                 mainData,
           yAxisID:              'yAssets',
           order:                2,
           borderColor:          CHART_COLORS.gain,
-          borderWidth:          3.5,
+          borderWidth:          3,
+          borderCapStyle:       'round',
+          borderJoinStyle:      'round',
           // 線の下をふんわり塗って「資産の山」に見せる（ベリー色→透明）
           fill:                 'origin',
           backgroundColor: (ctx) => {
@@ -171,13 +161,11 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
           pointRadius,
           pointBackgroundColor: pointBg,
           pointBorderColor:     pointBorder,
-          pointBorderWidth:     2,
-          pointHoverRadius:     7,
-          tension:              0.3,
-          segment: {
-            borderColor: (ctx) =>
-              ctx.p1.parsed.y >= ctx.p0.parsed.y ? CHART_COLORS.gain : CHART_COLORS.loss,
-          },
+          pointBorderWidth:     1,
+          pointHoverRadius:     6,
+          pointHitRadius:       10,
+          tension:              0.25,
+          cubicInterpolationMode: 'monotone',
         },
         // 2. 年間支出 — 資産と桁が違うため右軸へ分ける
         {
@@ -186,14 +174,26 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
           yAxisID:         'yExpense',
           order:           0,
           borderColor:     CHART_COLORS.expense,
-          backgroundColor: CHART_COLORS.expense,
-          borderWidth:     3,
-          borderDash:      [5, 4],
-          pointRadius:     0,
+          backgroundColor: (ctx) => {
+            const { chartArea, ctx: c } = ctx.chart;
+            if (!chartArea) return 'rgba(239, 139, 34, 0.04)';
+            const g = c.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            g.addColorStop(0, 'rgba(239, 139, 34, 0.08)');
+            g.addColorStop(1, 'rgba(239, 139, 34, 0.01)');
+            return g;
+          },
+          borderWidth:     2.5,
+          borderCapStyle:  'round',
+          borderJoinStyle: 'round',
+          pointRadius:     expensePointRadius,
+          pointBackgroundColor: CHART_COLORS.expense,
+          pointBorderColor: '#fff',
+          pointBorderWidth: 1,
           pointHoverRadius: 5,
           pointHitRadius:  12,
-          fill:            false,
-          tension:         0,
+          fill:            'origin',
+          tension:         0.2,
+          cubicInterpolationMode: 'monotone',
         },
         // 3. Target dashed line
         {
@@ -202,9 +202,10 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
           yAxisID:     'yAssets',
           order:       1,
           borderColor: CHART_COLORS.target,
-          borderWidth: 1.5,
-          borderDash:  [8, 4],
+          borderWidth: 1,
+          borderDash:  [6, 5],
           pointRadius: 0,
+          hidden:      !showTarget,
           fill:        false,
           tension:     0,
         },
@@ -245,7 +246,7 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
           : []),
       ],
     },
-    plugins: [goalBadge, depletionBadge, expenseLabel],
+    plugins: [goalBadge, depletionBadge],
     options: {
       animation: { duration: 200 },
       responsive:  true,
@@ -253,7 +254,8 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: {
-          position: 'bottom',
+          position: 'top',
+          align: 'start',
           labels: {
             // 線種スワッチ: 点線（支出・目標）と実線（資産）の区別が凡例だけで付く
             usePointStyle: true,
@@ -273,66 +275,56 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
             },
             color: CHART_COLORS.text,
             font: { size: 12 },
-            filter: (item) => item.text !== '想定の幅',
+            padding: 18,
+            filter: (item) => item.datasetIndex !== 2 && item.text !== '想定の幅',
             sort: (a, b) => a.datasetIndex - b.datasetIndex,
           },
         },
         tooltip: {
-          // 同じ年齢の資産残高と年間支出を、色付きで別々の数値として見せる。
-          // 目標・弱気ケース・比較線はツールチップへ混ぜず、2つの主役を読みやすく保つ。
+          // 同じ年齢の2つの主役だけを白い吹き出しで表示する。
           displayColors: true,
+          backgroundColor: 'rgba(255, 255, 255, 0.97)',
+          titleColor: CHART_COLORS.text,
+          bodyColor: CHART_COLORS.text,
+          borderColor: 'rgba(226, 211, 189, 0.95)',
+          borderWidth: 1,
+          padding: 12,
           filter: (item) => item.datasetIndex === 0 || item.datasetIndex === 1,
           titleFont: { size: 14, weight: 'bold' },
           bodyFont: { size: 12 },
           callbacks: {
             title: (items) => items.length ? `${items[0].label}歳` : '',
-            label: (ctx) => `${ctx.dataset.label}　${fmtYen(ctx.parsed.y)}円`,
-            afterBody: (items) => {
-              if (!items.length) return [];
-              const age = Number(items[0].label);
-              const startAge = mainSeries[0].age;
-              const notes = (params.events ?? [])
-                .filter((e) => e.age === age && e.age > startAge)
-                .map((e) => `▼ ${e.label || 'イベント'} −${fmtYen(e.amount)}円`);
-              if (age > startAge) {
-                (params.children ?? []).forEach((c, i) => {
-                  const childAge = c.age + (age - startAge);
-                  const delta = educationCostAt(childAge, c.course) - educationCostAt(c.age, c.course);
-                  if (delta !== 0) {
-                    const name = c.name || `子ども${i + 1}`;
-                    const who = childAge >= 22 ? `${name}: 独立後` : `${name}: ${childAge}歳`;
-                    notes.push(`▼ 教育費 ${delta > 0 ? '+' : '−'}${fmtYen(Math.abs(delta))}円/年（${who}）`);
-                  }
-                });
-              }
-              return notes;
-            },
+            label: (ctx) => `${ctx.datasetIndex === 0 ? '資産' : '支出'}　${fmtYen(ctx.parsed.y)}円`,
           },
         },
       },
       scales: {
         x: {
-          // スマホは軸タイトルを省いて描画領域を広げる
-          title:  { display: !matchMedia('(max-width: 940px)').matches, text: '年齢', color: CHART_COLORS.text },
-          ticks:  { maxTicksLimit: 12, color: CHART_COLORS.text },
-          grid:   { color: CHART_COLORS.grid },
+          title:  { display: false },
+          ticks:  { maxTicksLimit: 7, color: CHART_COLORS.text, maxRotation: 0 },
+          grid:   { color: CHART_COLORS.grid, drawTicks: false },
+          border: { display: false },
         },
         yAssets: {
           position: 'left',
-          title: { display: !matchMedia('(max-width: 940px)').matches, text: '資産額', color: CHART_COLORS.text },
+          beginAtZero: true,
+          title: { display: false },
           grid:  { color: CHART_COLORS.grid },
+          border: { display: false },
           ticks: {
+            maxTicksLimit: 5,
             color: CHART_COLORS.text,
             callback: (value) => fmtYen(value),
           },
         },
         yExpense: {
+          display: false,
           position: 'right',
           beginAtZero: true,
           // 支出線はグラフ下1/3の帯に収め、上側の資産線と交差しないようにする
           // （右軸の上限を支出最大値の3倍に。教育費などの山も下部で読める）。
           suggestedMax: Math.max(...expenseData, 1) * 3,
-          title: { display: !matchMedia('(max-width: 940px)').matches, text: '年間支出', color: CHART_COLORS.expense },
+          title: { display: false },
           grid: { drawOnChartArea: false },
           ticks: {
             maxTicksLimit: 6,

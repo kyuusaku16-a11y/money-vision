@@ -170,7 +170,7 @@
             <section class="panel outlook-summary-card" aria-labelledby="outlook">
               <div class="outlook-card-head">
                 <h2 class="outlook-title" id="outlook"><svg class="ico" aria-hidden="true"><use href="#i-sprout"/></svg>今回の見通し</h2>
-                <a class="outlook-info" href="guide.html#shisan-jumyo" aria-label="資産寿命と今回の見通しについて確認する"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg></a>
+                <a class="outlook-info" href="guide.html#shisan-jumyo" aria-label="今回の見通しとグラフの見方を確認する"><svg class="ico" aria-hidden="true"><use href="#i-info"/></svg></a>
               </div>
               <div class="outlook-metrics">
                 <div class="outlook-metric outlook-metric-lifetime">
@@ -197,31 +197,31 @@
             <div class="panel cockpit-main">
               <div class="chart-card-head">
                 <h3 class="chart-title"><svg class="ico" aria-hidden="true"><use href="#i-income"/></svg>資産推移グラフ</h3>
-                <a class="chart-help" href="guide.html"><svg class="ico" aria-hidden="true"><use href="#i-book"/></svg>グラフの見方</a>
               </div>
               <div class="chart-view-tools">
-                <div class="view-toggle" role="tablist" aria-label="グラフの表示期間">
-                  <button id="modeLife" type="button" role="tab" aria-selected="true" aria-controls="chartPanel">100歳まで</button>
-                  <button id="modeNear" type="button" role="tab" aria-selected="false" aria-controls="chartPanel">目標まで</button>
+                <div class="chart-toolbar">
+                  <div class="view-toggle" role="tablist" aria-label="グラフの表示期間">
+                    <button id="modeLife" type="button" role="tab" aria-selected="true" aria-controls="chartPanel">100歳まで</button>
+                    <button id="modeNear" type="button" role="tab" aria-selected="false" aria-controls="chartPanel">目標まで</button>
+                  </div>
+                  <button id="saveScenarioBtn" type="button" class="scenario-save"><svg class="ico" aria-hidden="true"><use href="#i-bookmark"/></svg>このグラフを比較用に保存</button>
                 </div>
                 <p id="goalTabHint" class="goal-tab-hint" hidden>目標金額を設定すると表示できます</p>
                 <div id="chartPanel" role="tabpanel" aria-labelledby="modeLife">
-                  <p id="chartDescription" class="chart-description">今のペースで、資産と年間支出が将来どう動くかを確認できます。線にカーソルを合わせるかタップすると、年齢ごとの数字が見られます。</p>
+                  <p id="chartDescription" class="chart-description visually-hidden">今のペースで、資産と年間支出が将来どう動くかを確認できます。線にカーソルを合わせるかタップすると、年齢ごとの数字が見られます。</p>
                   <div id="goalResult" class="goal-result" hidden aria-live="polite">
                     <strong id="goalResultAmount"></strong>
                     <span id="goalResultStatus"></span>
                     <small id="goalResultConditions"></small>
                   </div>
                   <div class="chart-box"><canvas id="chart" role="img" aria-label="年齢ごとの資産残高と年間支出の推移グラフ" aria-describedby="chartDescription"></canvas></div>
+                  <p class="chart-disclaimer">※入力内容と設定条件にもとづく概算です。将来の結果を保証するものではありません。</p>
                 </div>
               </div>
               <div class="scenario-row">
-                <button id="saveScenarioBtn" type="button" class="scenario-save"><svg class="ico" aria-hidden="true"><use href="#i-bookmark"/></svg>このプランを保存</button>
                 <div id="scenarioList" class="scenario-list"></div>
                 <p id="scenarioMsg" class="field-note" hidden aria-live="polite"></p>
               </div>
-              <!-- リピートの生命線: 結果を見た人に「来月また来る理由」を1行で渡す -->
-              <p class="record-hint">これは今日の見通し。来月の<a href="#track">みなおし</a>で、答え合わせをしましょう</p>
             </div>
             </div>
 
@@ -276,8 +276,6 @@
             </section>
           </div>
         </div>
-
-        <p class="trust-note">登録不要・入力データは端末内のみ・投資助言ではありません</p>
 
         <div id="reaction" class="reaction" hidden aria-live="polite"><img class="reaction-img" id="reactionImg" src="assets/bird-pink.png" alt="" aria-hidden="true" loading="lazy" /><span id="reactionText"></span></div>
 
