@@ -1512,6 +1512,12 @@ footer .footer-link:hover { text-decoration: underline; }
   body { padding-bottom: 46px; }
 }
 
+/* タッチ端末がブラウザの「PC版サイト表示」で横持ちにしたとき（レイアウト高さ約550px）も
+   ヘッダーの追従を止める。マウス操作の本物のPCは pointer: fine なので従来どおり追従 */
+@media (pointer: coarse) and (max-height: 600px) {
+  .topbar { position: static; }
+}
+
 /* 診断ボタン（ヘッダーの題名横が定位置） */
 .header-diagnose {
   border: none;
