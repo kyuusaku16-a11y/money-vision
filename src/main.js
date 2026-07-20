@@ -1506,7 +1506,6 @@ function syncResultVisibility() {
   }
   $('outlookResult').hidden = veiled;
   $('resultsCockpit').classList.toggle('is-veiled', veiled);
-  $('navOutlook').hidden = veiled;
   $('navTrack').hidden = veiled;
   $('formLede').textContent = veiled
     ? 'まずは4つの数字を入力してください。結果を見たあとは、変更がすぐグラフに反映されます。'

@@ -54,6 +54,8 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
   const labels  = mainSeries.map((p) => p.age);
   const mainData = mainSeries.map((p) => p.assets);
   const expenseData = projectExpenses(params, labels).map((p) => p.expenses);
+  // スマホは左軸ラベルをグラフ内側に重ね、左の余白を描画幅に回す
+  const compact = matchMedia('(max-width: 940px)').matches;
 
   // 比較線は年齢で対応付ける（保存時と年齢設定が違ってもズレないように）
   const compareByAge = compare ? new Map(compare.series.map((p) => [p.age, p.assets])) : null;
@@ -314,7 +316,10 @@ export function renderChart(canvas, mainSeries, params, existingChart, compare =
           ticks: {
             maxTicksLimit: 5,
             color: CHART_COLORS.text,
-            callback: (value) => fmtYen(value),
+            mirror: compact,
+            padding: compact ? -4 : 3,
+            font: compact ? { size: 10 } : undefined,
+            callback: (value, index) => (compact && index === 0 ? '' : fmtYen(value)),
           },
         },
         yExpense: {
