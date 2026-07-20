@@ -177,11 +177,12 @@ body.is-initial:not(.is-form-started) #jumpFormBtn:hover { background: var(--col
 .tb-cta .dg-short { display: none; }
 /* PCヘッダーはロゴの視認性を保ち、ナビゲーションに十分なタップ領域を取る */
 @media (min-width: 701px) {
-  .topbar { gap: 20px; padding: 8px 32px; }
-  .tb-brand .tb-logo { width: 158px; }
+  /* ヘッダー高さ約64px（従来96pxの2/3）。高さはロゴサイズで決まる */
+  .topbar { gap: 20px; padding: 6px 32px; }
+  .tb-brand .tb-logo { width: 104px; }
   .tb-nav a,
-  .tb-nav button { padding: 10px 12px; }
-  .tb-cta { padding: 9px 16px; }
+  .tb-nav button { padding: 9px 12px; }
+  .tb-cta { padding: 8px 15px; }
   body.is-initial:not(.is-form-started) #jumpFormBtn { order: 99; }
   /* 結果表示後は「ミラためとは」を常連動線（みなおし・よみもの）の後ろへ回す */
   body:not(.is-initial) .tb-about-link { order: 99; }
@@ -2220,7 +2221,16 @@ body.is-initial:not(.is-form-started) .cockpit.is-veiled { min-height: 650px; }
 }
 .goal-progress-ring::before { content: ''; position: absolute; inset: 9px; border-radius: 50%; background: #fff; }
 .goal-progress-ring > span { position: relative; z-index: 1; }
-.outlook-goal-piyo { flex: none; width: 96px; height: 96px; margin: 0 0 -10px -20px; object-fit: contain; transform: scaleX(-1); }
+/* ぴよは1.7倍で主役級に。下端はカードの線を少しはみ出してよい（クリップされない） */
+.outlook-goal-piyo { flex: none; width: 163px; height: 163px; margin: 0 0 -22px -34px; object-fit: contain; transform: scaleX(-1); }
+/* PC: ぴよをレイアウトの流れから外し、カードの枠高さを変えずに
+   円グラフのやや右斜め下へ。足元だけカード下枠の線に少し重なる */
+@media (min-width: 941px) {
+  .outlook-metric-goal { position: relative; }
+  .goal-progress-visual { justify-content: flex-start; padding-left: 6px; }
+  /* さらに1.2倍(196px)。枠の高さは変えず、右下方向へはみ出すのは許容 */
+  .outlook-goal-piyo { position: absolute; right: -46px; bottom: -53px; margin: 0; width: 196px; height: 196px; }
+}
 .chart-card-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 14px; padding-bottom: 13px; border-bottom: 1px solid var(--color-line); }
 .chart-title { display: flex; align-items: center; margin: 0; font-family: var(--font-display); font-size: 18px; color: var(--color-ink); }
 .chart-title .ico { color: #a77731; }
@@ -2432,7 +2442,7 @@ body.is-initial:not(.is-form-started) .cockpit.is-veiled { min-height: 650px; }
   .goal-progress-visual { min-height: 94px; margin-top: 7px; }
   .goal-progress-ring { width: 80px; height: 80px; font-size: 21px; }
   .goal-progress-ring::before { inset: 8px; }
-  .outlook-goal-piyo { width: 80px; height: 80px; margin: 0 0 -8px -16px; }
+  .outlook-goal-piyo { width: 136px; height: 136px; margin: 0 0 -18px -27px; }
   .ns-buttons { grid-template-columns: 1fr; }
   .ns-buttons button { min-height: 68px; }
   .ns-buttons small,
@@ -2470,7 +2480,7 @@ body.is-initial:not(.is-form-started) .cockpit.is-veiled { min-height: 650px; }
   .goal-progress-visual { min-height: 80px; }
   .goal-progress-ring { width: 70px; height: 70px; font-size: 19px; }
   .goal-progress-ring::before { inset: 7px; }
-  .outlook-goal-piyo { width: 66px; height: 66px; margin: 0 0 -7px -13px; }
+  .outlook-goal-piyo { width: 112px; height: 112px; margin: 0 0 -15px -22px; }
   .form label.form-field-primary { grid-template-columns: minmax(0, 1fr) 112px; }
 }
 
